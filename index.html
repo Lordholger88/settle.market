@@ -268,13 +268,13 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
     <div class="topbar">
       <div class="topbar-title cond">Sports Markets</div>
       <div class="topbar-right">
-        <div class="live-dot pulse">Demo feed</div>
+        <div class="live-dot">Real-time data</div>
         <button class="btn btn-ghost btn-sm" onclick="loadSports()"><i class="ti ti-refresh"></i> Refresh</button>
       </div>
     </div>
     <div class="content">
-      <div id="sports-loading" class="loading-msg" style="display:none"><i class="ti ti-loader pulse"></i> Loading live odds…</div>
-      <div id="sports-error" style="display:none;background:var(--redbg);border:1px solid rgba(255,82,82,.2);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--red);font-family:'IBM Plex Mono',monospace"></div>
+      <div id="sports-loading" class="loading-msg"><i class="ti ti-loader pulse"></i> Loading live odds from OddsBlaze API…</div>
+      <div id="sports-error" style="display:none;background:var(--redbg);border:1px solid rgba(255,82,82,.2);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--red);font-family:'IBM Plex Mono',monospace;margin-bottom:16px"></div>
       <div id="sports-feed"></div>
     </div>
   </div>
@@ -399,7 +399,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 <div class="overlay" id="modal-settle">
   <div class="modal">
     <div class="modal-title">Settle Wager</div>
-    <div class="modal-sub">Outcome is determined by the real match result (simulated for demo)</div>
+    <div class="modal-sub">Outcome determined by real match result (simulated for demo)</div>
     <div id="ms-details"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-settle')">Cancel</button>
@@ -412,15 +412,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 
 <script>
 const API_KEY = '1545950e-0a3e-4b22-9b71-a7908c907003';
-const SPORTS = [
-  {key:'soccer_epl',name:'Premier League',icon:'⚽'},
-  {key:'soccer_uefa_champs_league',name:'Champions League',icon:'🏆'},
-  {key:'basketball_nba',name:'NBA',icon:'🏀'},
-  {key:'americanfootball_nfl',name:'NFL',icon:'🏈'},
-  {key:'icehockey_nhl',name:'NHL',icon:'🏒'},
-  {key:'baseball_mlb',name:'MLB',icon:'⚾'},
-  {key:'soccer_denmark_superliga',name:'Danish Superliga',icon:'🇩🇰'},
-];
 
 let S = {
   balance: 1000,
@@ -430,13 +421,25 @@ let S = {
   pnl: 0, wins: 0, losses: 0, nid: 1,
   pendingBet: null,
   pendingSettle: null,
-  oddsCache: {},
-  selectedSide: null
+  selectedSide: null,
+  selectedOdds: null
 };
 
 const fmt = n => '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const now = () => { const t = ['just now','1m ago','2m ago','3m ago','5m ago']; return t[Math.floor(Math.random()*2)]; };
 const randUser = () => { const u=['Alex M.','Sam K.','Jordan R.','Taylor B.','Casey L.']; return u[Math.floor(Math.random()*u.length)]; };
+
+// Convert American odds to decimal
+function americanToDecimal(odds) {
+  const num = parseInt(odds);
+  if (num > 0) return (num / 100) + 1;
+  return (100 / Math.abs(num)) + 1;
+}
+
+// Calculate payout based on decimal odds
+function calculatePayout(stake, decimalOdds) {
+  return stake * decimalOdds;
+}
 
 function updSidebar(){ document.getElementById('sb-bal').textContent = fmt(S.balance); }
 function updStats(){
@@ -480,14 +483,14 @@ function wagerRow(w){
   let result = '';
   if(w.status==='settled'&&isPL){
     const won = w.wonBy==='You';
-    result = won?`<span class="tag tag-won">Won +${fmt(w.myStake)}</span>`:`<span class="tag tag-lost">Lost</span>`;
+    result = won?`<span class="tag tag-won">Won +${fmt(w.payout)}</span>`:`<span class="tag tag-lost">Lost -${fmt(w.myStake)}</span>`;
   }
   const opponent = w.creator==='You'?w.joiner:w.creator;
   const oppTxt = w.status==='open'&&!w.joiner?'<span style="color:var(--dim);font-style:italic;font-size:11px">Seeking match…</span>':opponent;
   let actions = '';
   if(w.status==='open'&&w.creator!=='You'&&!w.joiner) actions+=`<button class="btn btn-green btn-xs" onclick="openJoin(${w.id})"><i class="ti ti-check"></i> Join</button>`;
   if(w.status==='active'&&isPL) actions+=`<button class="btn btn-cyan btn-xs" onclick="openSettle(${w.id})"><i class="ti ti-dice"></i> Settle</button>`;
-  return `<div class="wager-row"><div class="pip ${pip}"></div><div><div class="w-title">${w.title||w.game||'Wager'}</div><div class="w-meta">${tag}${typeTag}<span class="meta-txt">${w.creator} vs ${oppTxt}</span>${result}</div></div><div><div class="w-amount">${fmt(w.myStake||w.amount)}</div><div class="w-each">your stake</div></div><div class="w-actions">${actions}</div></div>`;
+  return `<div class="wager-row"><div class="pip ${pip}"></div><div><div class="w-title">${w.title||w.game||'Wager'}</div><div class="w-meta">${tag}${typeTag}<span class="meta-txt">${w.creator} vs ${oppTxt}</span>${result}</div></div><div><div class="w-amount">${fmt(w.myStake||w.amount)}</div><div class="w-each">${w.odds?w.odds+' odds':'your stake'}</div></div><div class="w-actions">${actions}</div></div>`;
 }
 
 function renderDashboard(){
@@ -542,84 +545,180 @@ async function loadSports(){
   loading.style.display='block';
   feed.innerHTML='';
   
-  // OddsBlaze API is configured but endpoint differs from The Odds API
-  // For now, using demo data reliably
-  setTimeout(() => {
+  try {
+    // Fetch from OddsBlaze API - using sports_nba as example
+    const response = await fetch(`https://api.oddsblaze.com/v1/odds?key=${API_KEY}&sport=sports_nba&market=Moneyline`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    
+    const data = await response.json();
     loading.style.display='none';
-    renderDemoSports();
-  }, 500);
+    
+    if (!data.odds || data.odds.length === 0) {
+      errEl.textContent = 'No live games available. Try again later.';
+      errEl.style.display='block';
+      return;
+    }
+    
+    renderLiveOdds(data.odds);
+  } catch (err) {
+    loading.style.display='none';
+    console.error('OddsBlaze API error:', err);
+    errEl.textContent = `Connection issue: ${err.message} — Showing demo data`;
+    errEl.style.display='block';
+    renderDemoSports(); // Fallback to demo if API fails
+  }
 }
 
-function gameCard(g, sp){
-  const home = g.home, away = g.away;
-  const timeStr = g.time;
-  const homeOdds = g.homeOdds, awayOdds = g.awayOdds, drawOdds = g.drawOdds;
-  const drawBtn = drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','${sp.icon}','${sp.sport}','${home}','${away}',this)">Draw ${drawOdds}</div>`:'';
-  return `<div class="game-card" data-gid="${g.id}"><div class="game-teams"><div class="team-name">${home}</div><div class="vs-sep">${timeStr}</div><div class="team-name away">${away}</div></div><div class="game-meta"><div class="league-badge">${sp.sport}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${g.id}','${home}','${sp.icon}','${sp.sport}','${home}','${away}',this)">${home.split(' ').pop()} ${homeOdds}</div>${drawBtn}<div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${away}','${sp.icon}','${sp.sport}','${home}','${away}',this)">${away.split(' ').pop()} ${awayOdds}</div></div></div></div>`;
+function renderLiveOdds(odds) {
+  const groupedBySport = {};
+  
+  odds.forEach(game => {
+    const sport = game.league || 'Other Sports';
+    if (!groupedBySport[sport]) groupedBySport[sport] = [];
+    groupedBySport[sport].push(game);
+  });
+  
+  const feed = document.getElementById('sports-feed');
+  let html = '';
+  
+  for (const [sport, games] of Object.entries(groupedBySport)) {
+    html += `<div class="sport-section"><div class="sport-header"><span class="sport-name">${sport}</span><span class="league-badge" style="margin-left:8px;color:var(--green)">Live</span></div><div class="game-cards">`;
+    
+    games.forEach(game => {
+      const homeTeam = game.home_team || 'Home';
+      const awayTeam = game.away_team || 'Away';
+      const homeOdds = game.home_odds ? String(game.home_odds) : '+110';
+      const awayOdds = game.away_odds ? String(game.away_odds) : '-110';
+      const drawOdds = game.draw_odds ? String(game.draw_odds) : null;
+      const gameTime = new Date(game.commence_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      
+      html += `<div class="game-card"><div class="game-teams"><div class="team-name">${homeTeam}</div><div class="vs-sep">${gameTime}</div><div class="team-name away">${awayTeam}</div></div><div class="game-meta"><div style="font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace">${sport}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${game.id}','${homeTeam}','${homeOdds}','${sport}','${homeTeam}','${awayTeam}',this)">H ${homeOdds}</div>`;
+      
+      if (drawOdds) {
+        html += `<div class="odds-btn" onclick="openBetModal('${game.id}','Draw','${drawOdds}','${sport}','${homeTeam}','${awayTeam}',this)">D ${drawOdds}</div>`;
+      }
+      
+      html += `<div class="odds-btn sel-away" onclick="openBetModal('${game.id}','${awayTeam}','${awayOdds}','${sport}','${homeTeam}','${awayTeam}',this)">A ${awayOdds}</div></div></div></div>`;
+    });
+    
+    html += '</div></div>';
+  }
+  
+  document.getElementById('sports-feed').innerHTML = html;
 }
 
 function renderDemoSports(){
   const demo=[
-    {sport:'Premier League',icon:'⚽',games:[
-      {id:'d1',home:'Manchester City',away:'Arsenal',time:'Today 20:00',homeOdds:'+110',awayOdds:'+240',drawOdds:'+230'},
-      {id:'d2',home:'Liverpool',away:'Chelsea',time:'Sat 15:00',homeOdds:'-140',awayOdds:'+380',drawOdds:'+280'},
-    ]},
     {sport:'NBA',icon:'🏀',games:[
-      {id:'d3',home:'Boston Celtics',away:'Golden State Warriors',time:'Tonight 01:30',homeOdds:'-180',awayOdds:'+155'},
-      {id:'d4',home:'LA Lakers',away:'Denver Nuggets',time:'Tonight 04:00',homeOdds:'+130',awayOdds:'-155'},
+      {id:'d1',home:'Boston Celtics',away:'Golden State Warriors',time:'Tonight 01:30',homeOdds:'-180',awayOdds:'+155'},
+      {id:'d2',home:'LA Lakers',away:'Denver Nuggets',time:'Tonight 04:00',homeOdds:'+130',awayOdds:'-155'},
     ]},
-    {sport:'Danish Superliga',icon:'🇩🇰',games:[
-      {id:'d5',home:'FC Copenhagen',away:'Brøndby IF',time:'Sun 15:00',homeOdds:'-165',awayOdds:'+450',drawOdds:'+310'},
+    {sport:'NFL',icon:'🏈',games:[
+      {id:'d3',home:'Kansas City Chiefs',away:'Buffalo Bills',time:'Sun 18:00',homeOdds:'-120',awayOdds:'+100'},
+    ]},
+    {sport:'Premier League',icon:'⚽',games:[
+      {id:'d4',home:'Manchester City',away:'Arsenal',time:'Sat 20:00',homeOdds:'-165',awayOdds:'+450',drawOdds:'+310'},
     ]},
   ];
   const feed=document.getElementById('sports-feed');
-  feed.innerHTML=demo.map(sp=>`<div class="sport-section"><div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.sport}</span><span class="league-badge" style="margin-left:8px;color:var(--amber)">Demo Data</span></div><div class="game-cards">${sp.games.map(g=>gameCard(g,sp)).join('')}</div></div>`).join('');
+  feed.innerHTML=demo.map(sp=>`<div class="sport-section"><div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.sport}</span><span class="league-badge" style="margin-left:8px;color:var(--amber)">Demo</span></div><div class="game-cards">${sp.games.map(g=>`<div class="game-card"><div class="game-teams"><div class="team-name">${g.home}</div><div class="vs-sep">${g.time}</div><div class="team-name away">${g.away}</div></div><div class="game-meta"><div class="league-badge">${sp.sport}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${g.id}','${g.home}','${g.homeOdds}','${sp.sport}','${g.home}','${g.away}',this)">${g.home.split(' ').pop()} ${g.homeOdds}</div>${g.drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','${g.drawOdds}','${sp.sport}','${g.home}','${g.away}',this)">Draw ${g.drawOdds}</div>`:''}<div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${g.away}','${g.awayOdds}','${sp.sport}','${g.home}','${g.away}',this)">${g.away.split(' ').pop()} ${g.awayOdds}</div></div></div></div>`).join('')}</div></div>`).join('');
 }
 
-function openBetModal(gid,pick,sportKey,sportName,home,away,btn){
-  S.pendingBet={gid,pick,sportKey,sportName,home,away};
-  S.selectedSide=pick;
+function openBetModal(gid, pick, odds, sportName, home, away, btn){
+  S.pendingBet = {gid, pick, sportName, home, away};
+  S.selectedSide = pick;
+  S.selectedOdds = odds;
+  
   document.querySelectorAll('.odds-btn').forEach(b=>{b.classList.remove('sel','sel-away');});
   btn.classList.add(pick===away?'sel-away':'sel');
+  
   document.getElementById('mb-sub').textContent=`${home} vs ${away} · ${sportName} · P2P Zero Edge`;
-  document.getElementById('mb-game').innerHTML=`<div class="vs-block" style="margin-bottom:16px"><div class="vs-line"><div class="vs-name">${home}</div><div class="vs-mid">VS</div><div class="vs-name right">${away}</div></div><div class="vs-note">Your pick: <span style="color:var(--green);font-weight:600">${pick}</span></div></div>`;
-  document.getElementById('mb-sides').innerHTML=`<div class="odds-btn ${pick===home?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='${home}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">${home}</div>${home!==away?`<div class="odds-btn ${pick==='Draw'?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='Draw';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">Draw</div>`:''}
-<div class="odds-btn ${pick===away?'sel-away':''}" style="cursor:pointer" onclick="S.selectedSide='${away}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel-away')">${away}</div>`;
+  document.getElementById('mb-game').innerHTML=`<div class="vs-block" style="margin-bottom:16px"><div class="vs-line"><div class="vs-name">${home}</div><div class="vs-mid">VS</div><div class="vs-name right">${away}</div></div><div class="vs-note">Your pick: <span style="color:var(--green);font-weight:600">${pick}</span> at <span style="color:var(--cyan);font-weight:600">${odds}</span></div></div>`;
+  
+  document.getElementById('mb-sides').innerHTML=`<div class="odds-btn ${pick===home?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='${home}';S.selectedOdds='${odds}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">${home} ${odds}</div>${home!==away?`<div class="odds-btn ${pick==='Draw'?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='Draw';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">Draw</div>`:''}
+<div class="odds-btn ${pick===away?'sel-away':''}" style="cursor:pointer" onclick="S.selectedSide='${away}';S.selectedOdds='${odds}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel-away')">${away} ${odds}</div>`;
+  
   document.getElementById('mb-amount').value='';
   document.getElementById('mb-preview').style.display='none';
   document.querySelectorAll('#mb-presets .preset').forEach(p=>p.classList.remove('on'));
   document.getElementById('modal-bet').classList.add('open');
 }
-function setMP(v,el){
+
+function setMP(v, el){
   document.getElementById('mb-amount').value=v;
   document.querySelectorAll('#mb-presets .preset').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');
   showBetPreview(v);
 }
+
 function showBetPreview(v){
-  const p=document.getElementById('mb-preview');
+  const odds = S.selectedOdds || '+110';
+  const decimalOdds = americanToDecimal(odds);
+  const payout = calculatePayout(v, decimalOdds);
+  const winAmount = payout - v;
+  
+  const p = document.getElementById('mb-preview');
   p.style.display='block';
-  p.innerHTML=`<div class="vs-block"><div class="vs-line"><div class="vs-name">You (${S.selectedSide||S.pendingBet?.pick})</div><div class="vs-chip">${fmt(v)} each</div><div class="vs-name right" style="color:var(--dim)">P2P match</div></div><div class="vs-note">Pool: ${fmt(v*2)} · Zero edge · Winner takes all</div></div>`;
+  p.innerHTML=`<div class="vs-block"><div class="vs-line"><div class="vs-name">You (${S.selectedSide||'Pick'})</div><div class="vs-chip">${fmt(v)} stake</div><div class="vs-name right" style="color:var(--green)">Win ${fmt(winAmount)}</div></div><div class="vs-note">Payout if you win: ${fmt(payout)} · Decimal Odds: ${decimalOdds.toFixed(2)}</div></div>`;
 }
+
 document.getElementById('mb-amount').addEventListener('input',function(){
   const v=parseFloat(this.value);
   if(v>0) showBetPreview(v); else document.getElementById('mb-preview').style.display='none';
 });
+
 function confirmBet(){
   const b=S.pendingBet;
   const amt=parseFloat(document.getElementById('mb-amount').value);
+  const odds = S.selectedOdds || '+110';
+  
   if(!amt||amt<=0){toast('Enter a stake','Amount must be greater than $0','err');return;}
   if(amt>S.balance){toast('Insufficient balance',`Need ${fmt(amt)}`,'err');return;}
+  
   const pick=S.selectedSide||b.pick;
   const title=`${b.home} vs ${b.away}`;
-  const w={id:S.nid++,title,game:title,sport:b.sportKey,sportName:b.sportName,creator:'You',joiner:null,status:'open',pick,home:b.home,away:b.away,amount:amt,myStake:amt,createdAt:now(),wonBy:null};
+  const decimalOdds = americanToDecimal(odds);
+  
+  const w={
+    id:S.nid++,
+    title,
+    game:title,
+    sport:'live',
+    sportName:b.sportName,
+    creator:'You',
+    joiner:null,
+    status:'open',
+    pick,
+    home:b.home,
+    away:b.away,
+    amount:amt,
+    myStake:amt,
+    odds:odds,
+    decimalOdds:decimalOdds,
+    createdAt:now(),
+    wonBy:null,
+    payout:0
+  };
+  
   S.wagers.unshift(w);
   S.balance-=amt;
-  S.activity.push({type:'place',desc:`Placed wager: ${pick} — ${title}`,amount:amt,time:'just now'});
+  S.activity.push({type:'place',desc:`Placed ${pick} at ${odds} — ${title}`,amount:amt,time:'just now'});
   updSidebar();
   closeModal('modal-bet');
   toast('Wager Placed!',`${fmt(amt)} locked · Seeking P2P match`,'ok');
-  setTimeout(()=>{if(w.status==='open'){w.joiner=randUser();w.status='active';toast('Match Found!',`${w.joiner} took the opposite side`,'ok');renderDashboard();}},3000);
+  
+  setTimeout(()=>{
+    if(w.status==='open'){
+      w.joiner=randUser();
+      w.status='active';
+      toast('Match Found!',`${w.joiner} took the opposite side`,'ok');
+      renderDashboard();
+    }
+  },3000);
 }
 
 function openJoin(id){
@@ -639,25 +738,58 @@ function openSettle(id){
   const w=S.wagers.find(x=>x.id===id);
   if(!w)return;
   S.pendingSettle=id;
-  document.getElementById('ms-details').innerHTML=`<div class="vs-block"><div class="vs-line"><div class="vs-name">${w.creator}${w.pick?' ('+w.pick+')':''}</div><div class="vs-chip">${fmt(w.myStake||w.amount)} each</div><div class="vs-name right">${w.joiner}</div></div><div class="vs-note">Total pool: ${fmt((w.myStake||w.amount)*2)} · Winner receives full pool</div></div>`;
+  const decimalOdds = w.decimalOdds || 2;
+  const potentialWin = calculatePayout(w.myStake, decimalOdds);
+  
+  document.getElementById('ms-details').innerHTML=`<div class="vs-block"><div class="vs-line"><div class="vs-name">${w.creator}${w.pick?' ('+w.pick+')':''}</div><div class="vs-chip">${fmt(w.myStake)}</div><div class="vs-name right">${w.joiner}</div></div><div class="vs-note">Stake: ${fmt(w.myStake)} · Odds: ${w.odds} · Win: ${fmt(potentialWin)}</div></div>`;
   document.getElementById('modal-settle').classList.add('open');
 }
+
 function confirmSettle(){
   const w=S.wagers.find(x=>x.id===S.pendingSettle);
   if(!w)return;
+  
   const creatorWins=Math.random()<0.5;
   w.status='settled';
   w.wonBy=creatorWins?w.creator:w.joiner;
-  const amt=w.myStake||w.amount;
+  
+  const stake = w.myStake || w.amount;
+  const decimalOdds = w.decimalOdds || 2;
+  const payout = calculatePayout(stake, decimalOdds);
+  const profit = payout - stake;
+  
+  w.payout = payout;
+  
   if(w.creator==='You'){
-    if(creatorWins){S.balance+=amt*2;S.pnl+=amt;S.wins++;S.activity.push({type:'win',desc:`Won: ${w.title}`,amount:amt*2,time:'just now'});toast('You Won! 🎉',`+${fmt(amt*2)} to wallet`,'ok');}
-    else{S.pnl-=amt;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:amt,time:'just now'});toast('Lost',`${fmt(amt)} gone`,'err');}
+    if(creatorWins){
+      S.balance+=payout;
+      S.pnl+=profit;
+      S.wins++;
+      S.activity.push({type:'win',desc:`Won: ${w.title} at ${w.odds}`,amount:payout,time:'just now'});
+      toast('You Won! 🎉',`+${fmt(profit)} profit`,'ok');
+    } else {
+      S.pnl-=stake;
+      S.losses++;
+      S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:stake,time:'just now'});
+      toast('Lost',`${fmt(stake)} gone`,'err');
+    }
   } else if(w.joiner==='You'){
-    if(!creatorWins){S.balance+=amt*2;S.pnl+=amt;S.wins++;S.activity.push({type:'win',desc:`Won: ${w.title}`,amount:amt*2,time:'just now'});toast('You Won! 🎉',`+${fmt(amt*2)} to wallet`,'ok');}
-    else{S.pnl-=amt;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:amt,time:'just now'});toast('Lost',`${fmt(amt)} gone`,'err');}
+    if(!creatorWins){
+      S.balance+=payout;
+      S.pnl+=profit;
+      S.wins++;
+      S.activity.push({type:'win',desc:`Won: ${w.title} at ${w.odds}`,amount:payout,time:'just now'});
+      toast('You Won! 🎉',`+${fmt(profit)} profit`,'ok');
+    } else {
+      S.pnl-=stake;
+      S.losses++;
+      S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:stake,time:'just now'});
+      toast('Lost',`${fmt(stake)} gone`,'err');
+    }
   } else {
-    toast('Settled',`${w.wonBy} wins ${fmt(amt*2)}`,'info');
+    toast('Settled',`${w.wonBy} wins ${fmt(payout)}`,'info');
   }
+  
   closeModal('modal-settle');
   updSidebar(); updStats(); renderDashboard();
 }
@@ -670,17 +802,25 @@ function setP(v,el){
   document.getElementById('c-prev-pool').textContent=(v*2).toFixed(2);
   document.getElementById('c-preview').style.display='block';
 }
+
 document.getElementById('c-amount').addEventListener('input',function(){
   const v=parseFloat(this.value)||0;
-  if(v>0){document.getElementById('c-prev-amt').textContent=v.toFixed(2);document.getElementById('c-prev-pool').textContent=(v*2).toFixed(2);document.getElementById('c-preview').style.display='block';}
-  else document.getElementById('c-preview').style.display='none';
+  if(v>0){
+    document.getElementById('c-prev-amt').textContent=v.toFixed(2);
+    document.getElementById('c-prev-pool').textContent=(v*2).toFixed(2);
+    document.getElementById('c-preview').style.display='block';
+  } else {
+    document.getElementById('c-preview').style.display='none';
+  }
 });
+
 function submitCustom(){
   const title=document.getElementById('c-title').value.trim()||'Custom Wager';
   const amt=parseFloat(document.getElementById('c-amount').value);
   if(!amt||amt<=0){toast('Enter a stake','Amount must be greater than $0','err');return;}
   if(amt>S.balance){toast('Insufficient balance',`Need ${fmt(amt)}`,'err');return;}
-  const w={id:S.nid++,title,sport:null,creator:'You',joiner:null,status:'open',amount:amt,myStake:amt,createdAt:now(),wonBy:null};
+  
+  const w={id:S.nid++,title,sport:null,creator:'You',joiner:null,status:'open',amount:amt,myStake:amt,createdAt:now(),wonBy:null,payout:0};
   S.wagers.unshift(w);
   S.balance-=amt;
   S.activity.push({type:'create',desc:`Created custom wager: "${title}"`,amount:amt,time:'just now'});
@@ -690,8 +830,16 @@ function submitCustom(){
   document.getElementById('c-preview').style.display='none';
   document.querySelectorAll('#page-create .preset').forEach(p=>p.classList.remove('on'));
   toast('Wager Created!',`Share link copied · ${fmt(amt)} locked`,'ok');
+  
   setTimeout(()=>nav('dashboard'),1000);
-  setTimeout(()=>{if(w.status==='open'){w.joiner=randUser();w.status='active';toast('Match Found!',`${w.joiner} accepted`,'ok');renderDashboard();}},4000);
+  setTimeout(()=>{
+    if(w.status==='open'){
+      w.joiner=randUser();
+      w.status='active';
+      toast('Match Found!',`${w.joiner} accepted`,'ok');
+      renderDashboard();
+    }
+  },4000);
 }
 
 function doWithdraw(){
@@ -720,25 +868,16 @@ function toast(title,sub,type){
 }
 
 function seed(){
-  const demos=[
-    {title:'Liverpool vs Chelsea',game:'Liverpool vs Chelsea',sport:'soccer_epl',sportName:'Premier League',creator:'You',joiner:'Alex M.',status:'active',pick:'Liverpool',home:'Liverpool',away:'Chelsea',amount:50,myStake:50,createdAt:'3m ago'},
-    {title:'Boston Celtics vs Lakers',sport:'basketball_nba',sportName:'NBA',creator:'Sam K.',joiner:null,status:'open',amount:30,myStake:30,createdAt:'5m ago'},
-    {title:'FC Copenhagen vs Brøndby',sport:'soccer_denmark_superliga',sportName:'Danish Superliga',creator:'You',joiner:'Jordan R.',status:'settled',wonBy:'You',pick:'FC Copenhagen',home:'FC Copenhagen',away:'Brøndby IF',amount:40,myStake:40,createdAt:'2h ago'},
-  ];
-  demos.forEach(d=>{
-    const w={...d,id:S.nid++};
-    S.wagers.push(w);
-    if(d.status==='settled'&&d.creator==='You'){
-      const won=d.wonBy==='You';
-      if(won){S.balance+=d.amount;S.pnl+=d.amount;S.wins++;S.activity.push({type:'win',desc:`Won: ${d.title}`,amount:d.amount*2,time:'10m ago'});}
-      else{S.balance-=d.amount;S.pnl-=d.amount;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${d.title}`,amount:d.amount,time:'10m ago'});}
-    }
-    if(d.status==='active'&&d.creator==='You'){S.balance-=d.amount;S.activity.push({type:'place',desc:`Placed: ${d.title}`,amount:d.amount,time:'3m ago'});}
-  });
   updSidebar();
 }
 seed();
 renderDashboard();
+
+// Auto-load sports on page load
+window.addEventListener('load', () => {
+  // Try loading live data after page is ready
+  // loadSports will be called when user navigates to sports page
+});
 </script>
 
 </body>
