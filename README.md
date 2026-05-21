@@ -1,2 +1,2 @@
 # settle.market
-Settle.market sager siye
+Settle.market wager site
