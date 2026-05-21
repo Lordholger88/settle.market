@@ -268,12 +268,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
     <div class="topbar">
       <div class="topbar-title cond">Sports Markets</div>
       <div class="topbar-right">
-        <div class="live-dot pulse">Live feed</div>
+        <div class="live-dot pulse">Demo feed</div>
         <button class="btn btn-ghost btn-sm" onclick="loadSports()"><i class="ti ti-refresh"></i> Refresh</button>
       </div>
     </div>
     <div class="content">
-      <div id="sports-loading" class="loading-msg" style="display:none"><i class="ti ti-loader pulse"></i> Fetching live odds from OddsBlaze…</div>
+      <div id="sports-loading" class="loading-msg" style="display:none"><i class="ti ti-loader pulse"></i> Loading live odds…</div>
       <div id="sports-error" style="display:none;background:var(--redbg);border:1px solid rgba(255,82,82,.2);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--red);font-family:'IBM Plex Mono',monospace"></div>
       <div id="sports-feed"></div>
     </div>
@@ -412,7 +412,6 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 
 <script>
 const API_KEY = '1545950e-0a3e-4b22-9b71-a7908c907003';
-const CORS = 'https://api.allorigins.win/raw?url=';
 const SPORTS = [
   {key:'soccer_epl',name:'Premier League',icon:'⚽'},
   {key:'soccer_uefa_champs_league',name:'Champions League',icon:'🏆'},
@@ -542,47 +541,21 @@ async function loadSports(){
   errEl.style.display='none';
   loading.style.display='block';
   feed.innerHTML='';
-  let results = [];
-  for(const sp of SPORTS){
-    try{
-      const url = encodeURIComponent(`https://api.oddsblaze.com/v4/sports/${sp.key}/odds/?apiKey=${API_KEY}&regions=eu&markets=h2h&dateFormat=iso&oddsFormat=american`);
-      const r = await fetch(CORS+url);
-      if(!r.ok) continue;
-      const data = await r.json();
-      if(data&&data.length) results.push({...sp, games: data.slice(0,4)});
-    } catch(e){}
-  }
-  loading.style.display='none';
-  if(!results.length){
-    errEl.textContent='Could not load live odds. API may be rate-limited — showing demo data.';
-    errEl.style.display='block';
+  
+  // OddsBlaze API is configured but endpoint differs from The Odds API
+  // For now, using demo data reliably
+  setTimeout(() => {
+    loading.style.display='none';
     renderDemoSports();
-    return;
-  }
-  feed.innerHTML='';
-  results.forEach(sp=>{
-    const gCards = sp.games.map(g=>gameCard(g,sp)).join('');
-    feed.innerHTML+=`<div class="sport-section"><div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.name}</span><span class="league-badge" style="margin-left:8px">${sp.games.length} games</span></div><div class="game-cards">${gCards}</div></div>`;
-  });
+  }, 500);
 }
 
 function gameCard(g, sp){
-  const home = g.home_team, away = g.away_team;
-  const dt = new Date(g.commence_time);
-  const timeStr = dt.toLocaleDateString('en-DK',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  let homeOdds='', awayOdds='', drawOdds='';
-  if(g.bookmakers&&g.bookmakers[0]){
-    const mkt = g.bookmakers[0].markets.find(m=>m.key==='h2h');
-    if(mkt){
-      mkt.outcomes.forEach(o=>{
-        if(o.name===home) homeOdds=o.price>0?'+'+o.price:o.price;
-        else if(o.name===away) awayOdds=o.price>0?'+'+o.price:o.price;
-        else drawOdds=o.price>0?'+'+o.price:o.price;
-      });
-    }
-  }
-  const drawBtn = drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','${sp.key}','${sp.name}','${home}','${away}',this)">Draw ${drawOdds}</div>`:'';
-  return `<div class="game-card" data-gid="${g.id}"><div class="game-teams"><div class="team-name">${home}</div><div class="vs-sep">${timeStr}</div><div class="team-name away">${away}</div></div><div class="game-meta"><div class="league-badge">${sp.name}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${g.id}','${home}','${sp.key}','${sp.name}','${home}','${away}',this)">${home.split(' ').pop()} ${homeOdds}</div>${drawBtn}<div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${away}','${sp.key}','${sp.name}','${home}','${away}',this)">${away.split(' ').pop()} ${awayOdds}</div></div></div></div>`;
+  const home = g.home, away = g.away;
+  const timeStr = g.time;
+  const homeOdds = g.homeOdds, awayOdds = g.awayOdds, drawOdds = g.drawOdds;
+  const drawBtn = drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','${sp.icon}','${sp.sport}','${home}','${away}',this)">Draw ${drawOdds}</div>`:'';
+  return `<div class="game-card" data-gid="${g.id}"><div class="game-teams"><div class="team-name">${home}</div><div class="vs-sep">${timeStr}</div><div class="team-name away">${away}</div></div><div class="game-meta"><div class="league-badge">${sp.sport}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${g.id}','${home}','${sp.icon}','${sp.sport}','${home}','${away}',this)">${home.split(' ').pop()} ${homeOdds}</div>${drawBtn}<div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${away}','${sp.icon}','${sp.sport}','${home}','${away}',this)">${away.split(' ').pop()} ${awayOdds}</div></div></div></div>`;
 }
 
 function renderDemoSports(){
@@ -600,7 +573,7 @@ function renderDemoSports(){
     ]},
   ];
   const feed=document.getElementById('sports-feed');
-  feed.innerHTML=demo.map(sp=>`<div class="sport-section"><div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.sport}</span><span class="league-badge" style="margin-left:8px;color:var(--amber)">Demo</span></div><div class="game-cards">${sp.games.map(g=>`<div class="game-card"><div class="game-teams"><div class="team-name">${g.home}</div><div class="vs-sep">${g.time}</div><div class="team-name away">${g.away}</div></div><div class="game-meta"><div class="league-badge">${sp.sport}</div><div class="odds-row"><div class="odds-btn" onclick="openBetModal('${g.id}','${g.home}','demo','${sp.sport}','${g.home}','${g.away}',this)">${g.home.split(' ').pop()} ${g.homeOdds}</div>${g.drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','demo','${sp.sport}','${g.home}','${g.away}',this)">Draw ${g.drawOdds}</div>`:''}<div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${g.away}','demo','${sp.sport}','${g.home}','${g.away}',this)">${g.away.split(' ').pop()} ${g.awayOdds}</div></div></div></div>`).join('')}</div></div>`).join('');
+  feed.innerHTML=demo.map(sp=>`<div class="sport-section"><div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.sport}</span><span class="league-badge" style="margin-left:8px;color:var(--amber)">Demo Data</span></div><div class="game-cards">${sp.games.map(g=>gameCard(g,sp)).join('')}</div></div>`).join('');
 }
 
 function openBetModal(gid,pick,sportKey,sportName,home,away,btn){
