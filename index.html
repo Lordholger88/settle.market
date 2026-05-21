@@ -1,706 +1,854 @@
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#0a0a0b;--surface:#121214;--card:#1a1a1e;--border:#2a2a30;--border2:#3a3a42;
-    --text:#f0f0f2;--muted:#888896;--dim:#55555f;
-    --green:#22c55e;--green-d:#16a34a;--green-bg:#0d2b1a;
-    --amber:#f59e0b;--amber-bg:#2a1e00;
-    --red:#ef4444;--red-bg:#2a0d0d;
-    --blue:#60a5fa;--blue-bg:#0d1a2a;
-    --accent:#a78bfa;--accent-bg:#1a1028;
-  }
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
-  h1,h2,h3,.mono{font-family:'DM Mono',monospace}
-  .syne{font-family:'Syne',sans-serif}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080909;--s1:#0f1011;--s2:#161718;--s3:#1e1f21;--border:#2c2d2f;--border2:#3a3b3e;
+  --text:#eeeef0;--muted:#888;--dim:#444;
+  --green:#00e676;--green2:#00c853;--greenbg:rgba(0,230,118,.07);
+  --red:#ff5252;--redbg:rgba(255,82,82,.07);
+  --amber:#ffab00;--amberbg:rgba(255,171,0,.07);
+  --cyan:#00e5ff;--cyanbg:rgba(0,229,255,.07);
+  --accent:#00e676;
+}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'IBM Plex Mono',monospace}
+.cond{font-family:'Barlow Condensed',sans-serif}
 
-  /* Layout */
-  #app{display:flex;min-height:100vh}
-  #sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;flex-shrink:0}
-  #main{flex:1;overflow-y:auto;padding:28px 32px}
-  .logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
-  .logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.5px}
-  .logo-dot{color:var(--accent)}
-  .logo-sub{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+#app{display:flex;min-height:100vh}
 
-  /* Nav */
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;border-left:2px solid transparent}
-  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
-  .nav-item.active{color:var(--text);background:rgba(167,139,250,.08);border-left-color:var(--accent)}
-  .nav-item i{font-size:16px;width:18px}
-  .nav-section{padding:12px 20px 6px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace}
+/* SIDEBAR */
+#sidebar{width:230px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:relative}
+.logo-wrap{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.logo-sq{width:28px;height:28px;background:var(--green);border-radius:4px;display:flex;align-items:center;justify-content:center}
+.logo-sq span{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#000;letter-spacing:-1px}
+.logo-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.logo-name span{color:var(--green)}
+.logo-tag{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;letter-spacing:1px}
 
-  /* Balance chip in sidebar */
-  .balance-chip{margin:auto 12px 20px;background:var(--accent-bg);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:12px 14px}
-  .balance-chip .label{font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px}
-  .balance-chip .amount{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text);margin-top:3px}
-  .balance-chip .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.nav-section{padding:14px 20px 4px;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-family:'IBM Plex Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .12s;position:relative}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.nav-item.active{color:var(--green)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:16px;background:var(--green);border-radius:0 2px 2px 0}
+.nav-item i{font-size:15px;width:16px}
 
-  /* Pages */
-  .page{display:none}.page.active{display:block}
-  .page-header{margin-bottom:28px}
-  .page-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.5px}
-  .page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.bal-widget{margin:auto 14px 18px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.bal-label{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+.bal-amount{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--green);letter-spacing:-0.5px}
+.bal-sub{font-size:10px;color:var(--dim);margin-top:3px}
 
-  /* Stats row */
-  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
-  .stat-card .s-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace}
-  .stat-card .s-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;margin-top:6px}
-  .stat-card .s-delta{font-size:11px;margin-top:4px}
-  .up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--muted)}
+/* MAIN */
+#main{flex:1;overflow-y:auto;background:var(--bg)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border);background:var(--s1);position:sticky;top:0;z-index:10}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
 
-  /* Section */
-  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600}
+.content{padding:24px 28px}
 
-  /* Buttons */
-  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s}
-  .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#9370f0}
-  .btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
-  .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-  .btn-green{background:var(--green-bg);border:1px solid var(--green-d);color:var(--green)}.btn-green:hover{background:#123d20}
-  .btn-danger{background:var(--red-bg);border:1px solid var(--red);color:var(--red)}
+/* PAGES */
+.page{display:none}.page.active{display:block}
 
-  /* Wager cards */
-  .wager-list{display:flex;flex-direction:column;gap:10px}
-  .wager-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:16px;transition:border-color .15s}
-  .wager-card:hover{border-color:var(--border2)}
-  .wager-card.settled{opacity:.6}
-  .status-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .pip-open{background:var(--amber);box-shadow:0 0 6px var(--amber)}
-  .pip-active{background:var(--green);box-shadow:0 0 6px var(--green)}
-  .pip-settled{background:var(--dim)}
-  .wager-info{flex:1}
-  .wager-title{font-weight:500;font-size:13px;margin-bottom:3px}
-  .wager-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
-  .wager-amount{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;text-align:right}
-  .wager-amount .each{font-size:10px;color:var(--dim)}
-  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-  .badge-open{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
-  .badge-active{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
-  .badge-settled{background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border)}
-  .badge-won{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.25)}
-  .badge-lost{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.25)}
-  .wager-actions{display:flex;gap:8px;align-items:center}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.stat-box{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.stat-lbl{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.stat-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--dim);margin-top:4px}
+.green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--amber)}.cyan{color:var(--cyan)}
 
-  /* Modal overlay */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(2px)}
-  .modal-overlay.open{display:flex}
-  .modal{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:28px;width:440px;max-width:95vw}
-  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:600;margin-bottom:6px}
-  .modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
-  .form-group{margin-bottom:18px}
-  .form-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace;margin-bottom:7px;display:block}
-  .form-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
-  .form-input:focus{border-color:var(--accent)}
-  .preset-amounts{display:flex;gap:8px;margin-top:8px}
-  .preset-btn{padding:6px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s}
-  .preset-btn:hover,.preset-btn.selected{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
-  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+/* SECTION HEAD */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+.sec-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);background:var(--s2);border:1px solid var(--border);padding:2px 8px;border-radius:3px}
 
-  /* Wallet page */
-  .wallet-hero{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:24px;text-align:center}
-  .wallet-balance{font-family:'DM Mono',monospace;font-size:48px;font-weight:500;letter-spacing:-2px;margin-bottom:8px}
-  .withdraw-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
-  .withdraw-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;position:relative}
-  .withdraw-card:hover{border-color:var(--border2)}
-  .withdraw-card.selected-instant{border-color:var(--green);background:var(--green-bg)}
-  .withdraw-card.selected-delay{border-color:var(--accent);background:var(--accent-bg)}
-  .wd-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px}
-  .wd-desc{font-size:12px;color:var(--muted);line-height:1.6}
-  .wd-fee{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;margin:10px 0 4px}
-  .fee-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'Barlow',sans-serif;text-transform:uppercase;letter-spacing:.5px;transition:all .12s}
+.btn-sm{padding:5px 12px;font-size:11px}
+.btn-xs{padding:3px 9px;font-size:10px}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:var(--green2)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted)}.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-red{background:var(--redbg);border:1px solid rgba(255,82,82,.3);color:var(--red)}.btn-red:hover{background:rgba(255,82,82,.15)}
+.btn-amber{background:var(--amberbg);border:1px solid rgba(255,171,0,.3);color:var(--amber)}
+.btn-cyan{background:var(--cyanbg);border:1px solid rgba(0,229,255,.3);color:var(--cyan)}
 
-  /* Activity log */
-  .activity-list{display:flex;flex-direction:column;gap:8px}
-  .activity-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px}
-  .activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-  .ai-win{background:var(--green-bg);color:var(--green)}
-  .ai-loss{background:var(--red-bg);color:var(--red)}
-  .ai-create{background:var(--blue-bg);color:var(--blue)}
-  .ai-withdraw{background:var(--accent-bg);color:var(--accent)}
-  .activity-detail{flex:1}
-  .activity-desc{font-size:13px;font-weight:500}
-  .activity-time{font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;margin-top:2px}
-  .activity-amount{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+/* WAGER CARDS */
+.wager-list{display:flex;flex-direction:column;gap:8px}
+.wager-row{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:grid;grid-template-columns:8px 1fr auto auto;gap:12px;align-items:center;transition:border-color .12s}
+.wager-row:hover{border-color:var(--border2)}
+.pip{width:6px;height:6px;border-radius:50%}
+.pip-open{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.pip-active{background:var(--green);box-shadow:0 0 8px var(--green)}
+.pip-settled{background:var(--dim)}
+.w-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.w-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.5px;border:1px solid}
+.tag-open{background:var(--amberbg);color:var(--amber);border-color:rgba(255,171,0,.25)}
+.tag-active{background:var(--greenbg);color:var(--green);border-color:rgba(0,230,118,.25)}
+.tag-settled{background:rgba(255,255,255,.03);color:var(--dim);border-color:var(--border)}
+.tag-sports{background:var(--cyanbg);color:var(--cyan);border-color:rgba(0,229,255,.2)}
+.tag-custom{background:rgba(167,139,250,.08);color:#a78bfa;border-color:rgba(167,139,250,.2)}
+.tag-won{background:var(--greenbg);color:var(--green);border-color:rgba(0,230,118,.3)}
+.tag-lost{background:var(--redbg);color:var(--red);border-color:rgba(255,82,82,.3)}
+.w-amount{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
+.w-each{font-size:9px;color:var(--dim);text-align:right;font-family:'IBM Plex Mono',monospace}
+.w-actions{display:flex;gap:6px;align-items:center}
+.meta-txt{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
 
-  /* Toast */
-  .toast{position:fixed;bottom:28px;right:28px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;font-size:13px;z-index:200;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast-title{font-weight:500;margin-bottom:2px}
-  .toast-sub{color:var(--muted);font-size:12px}
+/* SPORTS FEED */
+.sport-section{margin-bottom:20px}
+.sport-header{display:flex;align-items:center;gap:8px;padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--border)}
+.sport-icon{font-size:14px}
+.sport-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.game-cards{display:flex;flex-direction:column;gap:6px}
+.game-card{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;cursor:pointer;transition:all .12s}
+.game-card:hover{border-color:var(--green);background:var(--s3)}
+.game-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px}
+.team-name{font-size:13px;font-weight:600}
+.team-name.away{text-align:right}
+.vs-sep{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);text-align:center}
+.game-meta{display:flex;align-items:center;justify-content:space-between}
+.game-time{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.odds-row{display:flex;gap:6px}
+.odds-btn{padding:3px 10px;border-radius:3px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:600;background:var(--s3);border:1px solid var(--border2);color:var(--muted);cursor:pointer;transition:all .12s}
+.odds-btn:hover,.odds-btn.sel{background:var(--greenbg);border-color:rgba(0,230,118,.4);color:var(--green)}
+.odds-btn.sel-away:hover,.odds-btn.sel-away{background:var(--cyanbg);border-color:rgba(0,229,255,.4);color:var(--cyan)}
+.league-badge{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;background:var(--s3);border:1px solid var(--border);padding:1px 6px;border-radius:2px}
 
-  /* Divider */
-  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+/* WALLET */
+.wallet-hero{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:28px;margin-bottom:20px}
+.wallet-bal-label{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.wallet-bal{font-family:'IBM Plex Mono',monospace;font-size:44px;font-weight:600;color:var(--green);letter-spacing:-2px;line-height:1}
+.withdraw-box{background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:18px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.wd-info{}
+.wd-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.wd-calc{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
+.wd-payout{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--green)}
+.wd-fee-note{font-size:11px;color:var(--dim)}
+.wd-desc{font-size:12px;color:var(--muted);line-height:1.5}
 
-  /* vs box */
-  .vs-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-radius:8px;margin:8px 0}
-  .vs-player{flex:1;font-size:13px;font-weight:500}
-  .vs-badge{background:var(--accent-bg);color:var(--accent);border-radius:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:11px}
-  .vs-center{text-align:center;color:var(--dim);font-family:'DM Mono',monospace;font-size:11px}
-  .pending-slot{color:var(--dim);font-style:italic}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:100}
+.overlay.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:22px}
+.form-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;display:block}
+.form-inp{width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Barlow',sans-serif;outline:none;transition:border-color .12s}
+.form-inp:focus{border-color:var(--green)}
+.form-group{margin-bottom:16px}
+.preset-row{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.preset{padding:5px 12px;background:var(--s3);border:1px solid var(--border2);border-radius:4px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all .12s}
+.preset:hover,.preset.on{background:var(--greenbg);border-color:rgba(0,230,118,.4);color:var(--green)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
 
-  /* Pulse animation */
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  .live-pulse{animation:pulse 1.5s infinite}
+/* VS block */
+.vs-block{background:var(--s3);border:1px solid var(--border);border-radius:5px;padding:14px;margin:12px 0}
+.vs-line{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:6px}
+.vs-name{font-size:13px;font-weight:600}
+.vs-name.right{text-align:right}
+.vs-chip{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 10px;border-radius:3px;background:var(--greenbg);border:1px solid rgba(0,230,118,.2);color:var(--green);white-space:nowrap;text-align:center}
+.vs-mid{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim)}
+.vs-note{font-size:10px;color:var(--dim);text-align:center;font-family:'IBM Plex Mono',monospace;margin-top:6px}
 
-  /* scrollbar */
-  ::-webkit-scrollbar{width:4px}
-  ::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+/* ACTIVITY */
+.act-list{display:flex;flex-direction:column;gap:6px}
+.act-row{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:11px 14px;display:flex;align-items:center;gap:12px}
+.act-icon{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ai-win{background:var(--greenbg);color:var(--green)}
+.ai-loss{background:var(--redbg);color:var(--red)}
+.ai-place{background:var(--cyanbg);color:var(--cyan)}
+.ai-withdraw{background:rgba(167,139,250,.08);color:#a78bfa}
+.ai-create{background:var(--amberbg);color:var(--amber)}
+.act-desc{flex:1;font-size:12px;font-weight:500}
+.act-time{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.act-amt{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
+
+/* LOADING/SKELETON */
+.loading-bar{height:42px;background:var(--s2);border:1px solid var(--border);border-radius:5px;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+.loading-msg{text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:14px 18px;z-index:200;transform:translateY(80px);opacity:0;transition:all .25s;max-width:280px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.t-title{font-weight:600;font-size:13px;margin-bottom:2px}
+.t-sub{font-size:11px;color:var(--muted)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:5px;overflow:hidden;width:fit-content}
+.tab{padding:6px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;color:var(--muted);transition:all .12s;border-right:1px solid var(--border)}
+.tab:last-child{border-right:none}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--green);color:#000}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* pulse */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 1.5s infinite}
+
+/* live dot */
+.live-dot{display:inline-flex;align-items:center;gap:4px;font-size:9px;color:var(--green);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.live-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite}
 </style>
 
 <div id="app">
-  <nav id="sidebar">
-    <div class="logo">
-      <div class="logo-text">settle<span class="logo-dot">.</span>market</div>
-      <div class="logo-sub">P2P Wager Protocol</div>
+<nav id="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-mark">
+      <div class="logo-sq"><span>SM</span></div>
+      <div class="logo-name">SETTLE<span>.</span>MKT</div>
     </div>
-    <div class="nav-section">Platform</div>
-    <div class="nav-item active" onclick="nav('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
-    <div class="nav-item" onclick="nav('wagers')"><i class="ti ti-arrows-exchange"></i> Wagers</div>
-    <div class="nav-item" onclick="nav('create')"><i class="ti ti-plus"></i> Create Wager</div>
-    <div class="nav-section">Account</div>
-    <div class="nav-item" onclick="nav('wallet')"><i class="ti ti-wallet"></i> Wallet</div>
-    <div class="nav-item" onclick="nav('activity')"><i class="ti ti-list"></i> Activity</div>
-    <div style="flex:1"></div>
-    <div class="balance-chip">
-      <div class="label">Balance</div>
-      <div class="amount mono" id="sidebar-balance">$1,000.00</div>
-      <div class="sub">Demo funds</div>
+    <div class="logo-tag">P2P · Zero Edge · Live Sports</div>
+  </div>
+  <div class="nav-section">Platform</div>
+  <div class="nav-item active" onclick="nav('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+  <div class="nav-item" onclick="nav('sports')"><i class="ti ti-trophy"></i> Sports Markets</div>
+  <div class="nav-item" onclick="nav('my-wagers')"><i class="ti ti-arrows-exchange"></i> My Wagers</div>
+  <div class="nav-item" onclick="nav('create')"><i class="ti ti-plus"></i> Custom Wager</div>
+  <div class="nav-section">Account</div>
+  <div class="nav-item" onclick="nav('wallet')"><i class="ti ti-wallet"></i> Wallet</div>
+  <div class="nav-item" onclick="nav('activity')"><i class="ti ti-list"></i> Activity</div>
+  <div style="flex:1"></div>
+  <div class="bal-widget">
+    <div class="bal-label">Balance</div>
+    <div class="bal-amount mono" id="sb-bal">$1,000.00</div>
+    <div class="bal-sub">Demo funds</div>
+  </div>
+</nav>
+
+<main id="main">
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="topbar">
+      <div class="topbar-title cond">Dashboard</div>
+      <div class="topbar-right">
+        <div class="live-dot">Live odds</div>
+        <button class="btn btn-green btn-sm" onclick="nav('sports')"><i class="ti ti-trophy"></i> Browse Markets</button>
+      </div>
     </div>
-  </nav>
-
-  <main id="main">
-    <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
-      <div class="page-header">
-        <div class="page-title syne">Market Overview</div>
-        <div class="page-sub">Your P2P wager activity and open positions</div>
-      </div>
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="s-label">Balance</div>
-          <div class="s-val" id="stat-balance">$1,000.00</div>
-          <div class="s-delta neutral">Virtual demo</div>
-        </div>
-        <div class="stat-card">
-          <div class="s-label">Active Wagers</div>
-          <div class="s-val" id="stat-active">0</div>
-          <div class="s-delta neutral" id="stat-active-sub">$0 at stake</div>
-        </div>
-        <div class="stat-card">
-          <div class="s-label">Win Rate</div>
-          <div class="s-val" id="stat-winrate">—</div>
-          <div class="s-delta neutral" id="stat-winrate-sub">No settled wagers</div>
-        </div>
-        <div class="stat-card">
-          <div class="s-label">Net P&L</div>
-          <div class="s-val" id="stat-pnl">$0.00</div>
-          <div class="s-delta neutral" id="stat-pnl-sub">All time</div>
-        </div>
+    <div class="content">
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-lbl">Balance</div><div class="stat-val green" id="st-bal">$1,000.00</div><div class="stat-sub">Demo account</div></div>
+        <div class="stat-box"><div class="stat-lbl">Active Wagers</div><div class="stat-val" id="st-active">0</div><div class="stat-sub" id="st-active-sub">$0 at stake</div></div>
+        <div class="stat-box"><div class="stat-lbl">Win Rate</div><div class="stat-val" id="st-wr">—</div><div class="stat-sub" id="st-wr-sub">No history</div></div>
+        <div class="stat-box"><div class="stat-lbl">Net P&L</div><div class="stat-val" id="st-pnl">$0.00</div><div class="stat-sub">All time</div></div>
       </div>
 
-      <div class="section-head">
-        <div class="section-title syne">Open Wagers</div>
-        <button class="btn btn-primary btn-sm" onclick="nav('create')"><i class="ti ti-plus"></i> Create</button>
+      <div class="sec-head" style="margin-bottom:16px">
+        <div class="sec-title">My Open Positions</div>
+        <button class="btn btn-ghost btn-sm" onclick="nav('sports')"><i class="ti ti-plus"></i> New Wager</button>
       </div>
-      <div class="wager-list" id="open-wagers-list"></div>
-      <div id="no-open" style="color:var(--dim);font-size:13px;padding:24px 0;text-align:center;display:none">
-        <i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>
-        No open wagers. <span style="color:var(--accent);cursor:pointer" onclick="nav('create')">Create one →</span>
+      <div id="dash-wagers" class="wager-list"></div>
+      <div id="dash-empty" style="display:none;text-align:center;padding:28px 0;color:var(--dim);font-size:12px;font-family:'IBM Plex Mono',monospace">
+        No open wagers · <span style="color:var(--green);cursor:pointer" onclick="nav('sports')">browse live markets →</span>
       </div>
 
-      <hr class="divider">
-
-      <div class="section-head">
-        <div class="section-title syne">Recent Activity</div>
-        <span style="font-size:12px;color:var(--accent);cursor:pointer" onclick="nav('activity')">View all →</span>
+      <div class="sec-head" style="margin-top:24px;margin-bottom:12px">
+        <div class="sec-title">Recent Activity</div>
+        <span style="font-size:10px;color:var(--green);cursor:pointer;font-family:'IBM Plex Mono',monospace" onclick="nav('activity')">all →</span>
       </div>
-      <div class="activity-list" id="dash-activity"></div>
+      <div class="act-list" id="dash-act"></div>
     </div>
+  </div>
 
-    <!-- WAGERS -->
-    <div class="page" id="page-wagers">
-      <div class="page-header">
-        <div class="page-title syne">All Wagers</div>
-        <div class="page-sub">Open, active, and settled positions</div>
+  <!-- SPORTS -->
+  <div class="page" id="page-sports">
+    <div class="topbar">
+      <div class="topbar-title cond">Sports Markets</div>
+      <div class="topbar-right">
+        <div class="live-dot pulse">Live feed</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadSports()"><i class="ti ti-refresh"></i> Refresh</button>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px" id="wager-filters">
-        <button class="btn btn-sm btn-ghost active-filter" onclick="filterWagers('all',this)">All</button>
-        <button class="btn btn-sm btn-ghost" onclick="filterWagers('open',this)">Open</button>
-        <button class="btn btn-sm btn-ghost" onclick="filterWagers('active',this)">Active</button>
-        <button class="btn btn-sm btn-ghost" onclick="filterWagers('settled',this)">Settled</button>
-      </div>
-      <div class="wager-list" id="all-wagers-list"></div>
     </div>
+    <div class="content">
+      <div id="sports-loading" class="loading-msg" style="display:none"><i class="ti ti-loader pulse"></i> Fetching live odds from The Odds API…</div>
+      <div id="sports-error" style="display:none;background:var(--redbg);border:1px solid rgba(255,82,82,.2);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--red);font-family:'IBM Plex Mono',monospace;margin-bottom:16px"></div>
+      <div id="sports-feed"></div>
+    </div>
+  </div>
 
-    <!-- CREATE -->
-    <div class="page" id="page-create">
-      <div class="page-header">
-        <div class="page-title syne">Create Wager</div>
-        <div class="page-sub">Set your stake. Any matched user takes the opposite side.</div>
+  <!-- MY WAGERS -->
+  <div class="page" id="page-my-wagers">
+    <div class="topbar"><div class="topbar-title cond">My Wagers</div></div>
+    <div class="content">
+      <div class="tabs">
+        <div class="tab on" onclick="filterMyWagers('all',this)">All</div>
+        <div class="tab" onclick="filterMyWagers('open',this)">Open</div>
+        <div class="tab" onclick="filterMyWagers('active',this)">Active</div>
+        <div class="tab" onclick="filterMyWagers('settled',this)">Settled</div>
       </div>
-      <div style="max-width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px">
+      <div class="wager-list" id="my-wagers-list"></div>
+    </div>
+  </div>
+
+  <!-- CREATE CUSTOM -->
+  <div class="page" id="page-create">
+    <div class="topbar"><div class="topbar-title cond">Custom Wager</div></div>
+    <div class="content" style="max-width:500px">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:24px">
         <div class="form-group">
-          <label class="form-label">Title / Description</label>
-          <input class="form-input" id="create-title" placeholder="e.g. Denmark beats France tonight" maxlength="80">
+          <label class="form-lbl">Wager Title</label>
+          <input class="form-inp" id="c-title" placeholder="e.g. Denmark beats France on Sunday">
         </div>
         <div class="form-group">
-          <label class="form-label">Stake Amount</label>
-          <input class="form-input" id="create-amount" type="number" placeholder="0.00" min="1" max="9999">
-          <div class="preset-amounts" id="presets">
-            <div class="preset-btn" onclick="setPreset(10)">$10</div>
-            <div class="preset-btn" onclick="setPreset(25)">$25</div>
-            <div class="preset-btn" onclick="setPreset(50)">$50</div>
-            <div class="preset-btn" onclick="setPreset(100)">$100</div>
-            <div class="preset-btn" onclick="setPreset(250)">$250</div>
+          <label class="form-lbl">Your Stake</label>
+          <input class="form-inp" id="c-amount" type="number" placeholder="0.00" min="1">
+          <div class="preset-row">
+            <div class="preset" onclick="setP(10,this)">$10</div>
+            <div class="preset" onclick="setP(25,this)">$25</div>
+            <div class="preset" onclick="setP(50,this)">$50</div>
+            <div class="preset" onclick="setP(100,this)">$100</div>
+            <div class="preset" onclick="setP(250,this)">$250</div>
           </div>
         </div>
-        <div id="create-preview" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px">
-          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Wager Preview</div>
-          <div class="vs-row" style="margin:0">
-            <div class="vs-player">You (creator)</div>
-            <div class="vs-badge">$<span id="prev-amount">0</span></div>
-            <div class="vs-center" style="padding:0 10px">VS</div>
-            <div class="vs-badge" style="opacity:.5">$<span id="prev-amount2">0</span></div>
-            <div class="vs-player" style="text-align:right"><span class="pending-slot">Awaiting match</span></div>
+        <div id="c-preview" style="display:none;background:var(--s3);border:1px solid var(--border);border-radius:5px;padding:12px;margin-bottom:16px">
+          <div style="font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Preview</div>
+          <div class="vs-line">
+            <div class="vs-name">You</div>
+            <div class="vs-chip">$<span id="c-prev-amt">0</span> each</div>
+            <div class="vs-name right" style="color:var(--dim)">Awaiting match</div>
           </div>
-          <div style="font-size:11px;color:var(--dim);margin-top:10px">Total pool: $<span id="prev-pool">0</span> · 50/50 P2P · Zero edge</div>
+          <div style="font-size:10px;color:var(--dim);text-align:center;font-family:'IBM Plex Mono',monospace;margin-top:6px">Pool: $<span id="c-prev-pool">0</span> · Zero edge · P2P</div>
         </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-primary" onclick="submitCreate()" style="flex:1"><i class="ti ti-plus"></i> Create Wager</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-green" onclick="submitCustom()" style="flex:1"><i class="ti ti-plus"></i> Create & Share Link</button>
           <button class="btn btn-ghost" onclick="nav('dashboard')">Cancel</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- WALLET -->
-    <div class="page" id="page-wallet">
-      <div class="page-header">
-        <div class="page-title syne">Wallet</div>
-        <div class="page-sub">Manage your virtual balance</div>
-      </div>
+  <!-- WALLET -->
+  <div class="page" id="page-wallet">
+    <div class="topbar"><div class="topbar-title cond">Wallet</div></div>
+    <div class="content">
       <div class="wallet-hero">
-        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Available Balance</div>
-        <div class="wallet-balance" id="wallet-balance">$1,000.00</div>
-        <div style="font-size:12px;color:var(--dim)">Demo funds · No real money</div>
-        <hr class="divider" style="margin:20px 0">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Choose withdrawal method</div>
-        <div class="withdraw-options">
-          <div class="withdraw-card" id="wd-instant" onclick="selectWithdraw('instant')">
-            <div style="display:flex;justify-content:space-between;align-items:start">
-              <div class="wd-title">⚡ Instant</div>
-              <span class="fee-tag" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)">0.5% fee</span>
+        <div class="wallet-bal-label">Available Balance</div>
+        <div class="wallet-bal" id="wal-bal">$1,000.00</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:6px;font-family:'IBM Plex Mono',monospace">Demo account · No real funds</div>
+        <div class="withdraw-box">
+          <div class="wd-info">
+            <div class="wd-title">Withdraw Funds</div>
+            <div class="wd-calc">
+              <div class="wd-payout" id="wd-payout">$995.00</div>
+              <div class="wd-fee-note">after 0.5% fee</div>
             </div>
-            <div class="wd-fee" id="instant-payout">$995.00</div>
-            <div class="wd-desc">You receive funds immediately. A 0.5% processing fee is applied.</div>
+            <div class="wd-desc">Instant withdrawal · 0.5% platform fee · Funds sent immediately</div>
           </div>
-          <div class="withdraw-card" id="wd-delay" onclick="selectWithdraw('delay')">
-            <div style="display:flex;justify-content:space-between;align-items:start">
-              <div class="wd-title">🕐 Delayed</div>
-              <span class="fee-tag" style="background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)">Free</span>
-            </div>
-            <div class="wd-fee" id="delayed-payout">$1,000.00</div>
-            <div class="wd-desc">Full amount. Queued for processing. No fee.</div>
-          </div>
-        </div>
-        <div id="withdraw-action" style="margin-top:16px;display:none">
-          <div id="wd-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
-          <button class="btn btn-primary" id="wd-confirm-btn" onclick="confirmWithdraw()">Confirm Withdrawal</button>
+          <button class="btn btn-green" onclick="doWithdraw()" style="white-space:nowrap"><i class="ti ti-arrow-bar-to-down"></i> Withdraw</button>
         </div>
       </div>
-      <div class="section-head">
-        <div class="section-title syne">Withdrawal History</div>
-      </div>
-      <div class="activity-list" id="withdraw-history"></div>
-      <div id="no-withdrawals" style="color:var(--dim);font-size:13px;padding:16px 0;text-align:center">No withdrawals yet</div>
+      <div class="sec-head"><div class="sec-title">Withdrawal History</div></div>
+      <div class="act-list" id="wd-history"></div>
+      <div id="wd-empty" style="color:var(--dim);font-size:11px;padding:16px 0;text-align:center;font-family:'IBM Plex Mono',monospace">No withdrawals yet</div>
     </div>
+  </div>
 
-    <!-- ACTIVITY -->
-    <div class="page" id="page-activity">
-      <div class="page-header">
-        <div class="page-title syne">Activity Log</div>
-        <div class="page-sub">All wager and wallet events</div>
-      </div>
-      <div class="activity-list" id="full-activity"></div>
-      <div id="no-activity" style="color:var(--dim);font-size:13px;padding:24px 0;text-align:center">No activity yet</div>
+  <!-- ACTIVITY -->
+  <div class="page" id="page-activity">
+    <div class="topbar"><div class="topbar-title cond">Activity Log</div></div>
+    <div class="content">
+      <div class="act-list" id="full-act"></div>
+      <div id="act-empty" style="color:var(--dim);font-size:11px;padding:24px 0;text-align:center;font-family:'IBM Plex Mono',monospace">No activity yet</div>
     </div>
-  </main>
+  </div>
+</main>
 </div>
 
-<!-- Modals -->
-<div class="modal-overlay" id="modal-join">
+<!-- PLACE BET MODAL -->
+<div class="overlay" id="modal-bet">
   <div class="modal">
-    <div class="modal-title">Join Wager</div>
-    <div class="modal-sub">You'll take the opposing side. Funds locked until settlement.</div>
-    <div id="join-details"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-join')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmJoin()"><i class="ti ti-check"></i> Accept & Lock Funds</button>
+    <div class="modal-title">Place Wager</div>
+    <div class="modal-sub" id="mb-sub">P2P · Zero edge · Your funds locked until settlement</div>
+    <div id="mb-game"></div>
+    <div class="form-group">
+      <label class="form-lbl">Pick Your Side</label>
+      <div id="mb-sides" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">Stake Amount</label>
+      <input class="form-inp" id="mb-amount" type="number" placeholder="0.00" min="1">
+      <div class="preset-row" id="mb-presets">
+        <div class="preset" onclick="setMP(10,this)">$10</div>
+        <div class="preset" onclick="setMP(25,this)">$25</div>
+        <div class="preset" onclick="setMP(50,this)">$50</div>
+        <div class="preset" onclick="setMP(100,this)">$100</div>
+      </div>
+    </div>
+    <div id="mb-preview" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bet')">Cancel</button>
+      <button class="btn btn-green" onclick="confirmBet()"><i class="ti ti-check"></i> Lock Funds & Place</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-settle">
+<!-- SETTLE MODAL -->
+<div class="overlay" id="modal-settle">
   <div class="modal">
     <div class="modal-title">Settle Wager</div>
-    <div class="modal-sub" id="settle-sub">Outcome determined by 50/50 random simulation.</div>
-    <div id="settle-details"></div>
-    <div class="modal-actions">
+    <div class="modal-sub">Outcome is determined by the real match result (simulated for demo)</div>
+    <div id="ms-details"></div>
+    <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-settle')">Cancel</button>
-      <button class="btn btn-green" onclick="confirmSettle()"><i class="ti ti-dice"></i> Simulate Outcome</button>
+      <button class="btn btn-green" onclick="confirmSettle()"><i class="ti ti-trophy"></i> Reveal Result</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast">
-  <div class="toast-title" id="toast-title"></div>
-  <div class="toast-sub" id="toast-sub"></div>
-</div>
+<div class="toast" id="toast"><div class="t-title" id="t-title"></div><div class="t-sub" id="t-sub"></div></div>
 
 <script>
-const USERS = ['You','Alex M.','Sam K.','Jordan R.','Taylor B.','Casey L.'];
-const ME = 'You';
-let state = {
+const API_KEY = '9ac4e32972fdac9ee0c9badbb4dc0331';
+const CORS = 'https://api.allorigins.win/raw?url=';
+const SPORTS = [
+  {key:'soccer_epl',name:'Premier League',icon:'⚽'},
+  {key:'soccer_uefa_champs_league',name:'Champions League',icon:'🏆'},
+  {key:'basketball_nba',name:'NBA',icon:'🏀'},
+  {key:'americanfootball_nfl',name:'NFL',icon:'🏈'},
+  {key:'icehockey_nhl',name:'NHL',icon:'🏒'},
+  {key:'baseball_mlb',name:'MLB',icon:'⚾'},
+  {key:'soccer_denmark_superliga',name:'Danish Superliga',icon:'🇩🇰'},
+];
+
+let S = {
   balance: 1000,
   wagers: [],
   activity: [],
   withdrawals: [],
-  pnl: 0,
-  wins: 0,
-  losses: 0,
-  nextId: 1,
-  pendingJoin: null,
+  pnl: 0, wins: 0, losses: 0, nid: 1,
+  pendingBet: null,
   pendingSettle: null,
-  selectedWithdraw: null
+  oddsCache: {},
+  selectedSide: null
 };
 
-function fmt(n){return '$'+parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
-function fmtMini(n){return '$'+parseFloat(n).toFixed(2)}
-function timeAgo(){const m=['just now','1m ago','2m ago','5m ago','10m ago','15m ago'];return m[Math.floor(Math.random()*3)]}
-function randUser(){const u=USERS.filter(x=>x!==ME);return u[Math.floor(Math.random()*u.length)]}
+const fmt = n => '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const now = () => { const t = ['just now','1m ago','2m ago','3m ago','5m ago']; return t[Math.floor(Math.random()*2)]; };
+const randUser = () => { const u=['Alex M.','Sam K.','Jordan R.','Taylor B.','Casey L.']; return u[Math.floor(Math.random()*u.length)]; };
 
-function updateSidebar(){
-  document.getElementById('sidebar-balance').textContent=fmt(state.balance);
+function updSidebar(){ document.getElementById('sb-bal').textContent = fmt(S.balance); }
+function updStats(){
+  document.getElementById('st-bal').textContent = fmt(S.balance);
+  const act = S.wagers.filter(w=>w.status==='open'||w.status==='active');
+  const stake = act.reduce((s,w)=>s+(w.myStake||0),0);
+  document.getElementById('st-active').textContent = act.length;
+  document.getElementById('st-active-sub').textContent = fmt(stake)+' at stake';
+  const tot = S.wins+S.losses;
+  document.getElementById('st-wr').textContent = tot ? Math.round(S.wins/tot*100)+'%' : '—';
+  document.getElementById('st-wr-sub').textContent = tot ? `${S.wins}W / ${S.losses}L` : 'No history';
+  const pnl = S.pnl;
+  const el = document.getElementById('st-pnl');
+  el.textContent = fmt(pnl);
+  el.className = 'stat-val ' + (pnl>0?'green':pnl<0?'red':'');
 }
-function updateStats(){
-  document.getElementById('stat-balance').textContent=fmt(state.balance);
-  const active=state.wagers.filter(w=>w.status==='active'||w.status==='open');
-  const atStake=active.reduce((s,w)=>s+(w.creator===ME?w.amount:w.joiner===ME?w.amount:0),0);
-  document.getElementById('stat-active').textContent=active.length;
-  document.getElementById('stat-active-sub').textContent=fmt(atStake)+' at stake';
-  const total=state.wins+state.losses;
-  document.getElementById('stat-winrate').textContent=total?Math.round(state.wins/total*100)+'%':'—';
-  document.getElementById('stat-winrate-sub').textContent=total?`${state.wins}W / ${state.losses}L`:'No settled wagers';
-  const pnl=state.pnl;
-  const el=document.getElementById('stat-pnl');
-  el.textContent=fmt(pnl);
-  el.style.color=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text)';
-  document.getElementById('stat-pnl-sub').textContent='All time';
-}
-function updateWalletPage(){
-  const b=state.balance;
-  document.getElementById('wallet-balance').textContent=fmt(b);
-  document.getElementById('instant-payout').textContent=fmtMini(b*0.995);
-  document.getElementById('delayed-payout').textContent=fmtMini(b);
+function updWallet(){
+  const b = S.balance;
+  document.getElementById('wal-bal').textContent = fmt(b);
+  document.getElementById('wd-payout').textContent = fmt(b*0.995);
 }
 
-function nav(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  const navItems=document.querySelectorAll('.nav-item');
-  navItems.forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'"))n.classList.add('active')});
-  if(page==='dashboard')renderDashboard();
-  if(page==='wagers')renderAllWagers();
-  if(page==='wallet'){updateWalletPage();renderWithdrawHistory();}
-  if(page==='activity')renderFullActivity();
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const items = document.querySelectorAll('.nav-item');
+  items.forEach(n=>{ if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+p+"'")) n.classList.add('active'); });
+  if(p==='dashboard'){ updStats(); renderDashboard(); }
+  if(p==='sports'){ loadSports(); }
+  if(p==='my-wagers') renderMyWagers('all');
+  if(p==='wallet'){ updWallet(); renderWdHistory(); }
+  if(p==='activity') renderFullAct();
 }
 
-function renderWagerCard(w,context){
-  const myRole=w.creator===ME?'creator':w.joiner===ME?'joiner':null;
-  const pip=w.status==='open'?'pip-open':w.status==='active'?'pip-active':'pip-settled';
-  const badge=w.status==='open'?'<span class="badge badge-open">Open</span>':w.status==='active'?'<span class="badge badge-active live-pulse">Active</span>':'<span class="badge badge-settled">Settled</span>';
-  let result='';
-  if(w.status==='settled'&&myRole){
-    const won=(myRole==='creator'&&w.winner==='creator')||(myRole==='joiner'&&w.winner==='joiner');
-    result=won?'<span class="badge badge-won">Won +'+fmtMini(w.amount)+'</span>':'<span class="badge badge-lost">Lost</span>';
+// WAGER ROW
+function wagerRow(w){
+  const isPL = w.creator==='You'||w.joiner==='You';
+  const pip = w.status==='open'?'pip-open':w.status==='active'?'pip-active':'pip-settled';
+  const tag = w.status==='open'?'<span class="tag tag-open">Open</span>':w.status==='active'?'<span class="tag tag-active pulse">Live</span>':'<span class="tag tag-settled">Settled</span>';
+  const typeTag = w.sport?`<span class="tag tag-sports">${w.sportName||'Sports'}</span>`:`<span class="tag tag-custom">Custom</span>`;
+  let result = '';
+  if(w.status==='settled'&&isPL){
+    const won = w.wonBy==='You';
+    result = won?`<span class="tag tag-won">Won +${fmt(w.myStake)}</span>`:`<span class="tag tag-lost">Lost</span>`;
   }
-  let actions='';
-  if(context!=='settled'){
-    if(w.status==='open'&&!myRole)actions+=`<button class="btn btn-sm btn-green" onclick="openJoin(${w.id})"><i class="ti ti-check"></i> Join</button>`;
-    if(w.status==='active'&&myRole)actions+=`<button class="btn btn-sm btn-ghost" onclick="openSettle(${w.id})"><i class="ti ti-dice"></i> Settle</button>`;
-  }
-  const opponent=w.creator===ME?w.joiner:w.creator;
-  const opText=w.status==='open'&&!w.joiner?'<span class="pending-slot">Waiting for match…</span>':opponent;
-  return `<div class="wager-card${w.status==='settled'?' settled':''}">
-    <div class="status-pip ${pip}"></div>
-    <div class="wager-info">
-      <div class="wager-title">${w.title}</div>
-      <div class="wager-meta">${badge} &nbsp;${w.creator} vs ${opText} &nbsp;·&nbsp; ${w.createdAt}</div>
+  const opponent = w.creator==='You'?w.joiner:w.creator;
+  const oppTxt = w.status==='open'&&!w.joiner?'<span style="color:var(--dim);font-style:italic;font-size:11px">Seeking match…</span>':opponent;
+  let actions = '';
+  if(w.status==='open'&&w.creator!=='You'&&!w.joiner) actions+=`<button class="btn btn-green btn-xs" onclick="openJoin(${w.id})"><i class="ti ti-check"></i> Join</button>`;
+  if(w.status==='active'&&isPL) actions+=`<button class="btn btn-cyan btn-xs" onclick="openSettle(${w.id})"><i class="ti ti-dice"></i> Settle</button>`;
+  return `<div class="wager-row">
+    <div class="pip ${pip}"></div>
+    <div>
+      <div class="w-title">${w.title||w.game||'Wager'}</div>
+      <div class="w-meta">${tag}${typeTag}<span class="meta-txt">${w.creator} vs ${oppTxt}</span>${result}</div>
     </div>
-    <div class="wager-amount">${fmt(w.amount)}<div class="each">each side</div></div>
-    <div class="wager-actions">${result} ${actions}</div>
+    <div><div class="w-amount">${fmt(w.myStake||w.amount)}</div><div class="w-each">your stake</div></div>
+    <div class="w-actions">${actions}</div>
   </div>`;
 }
 
 function renderDashboard(){
-  const open=state.wagers.filter(w=>w.status==='open'||w.status==='active');
-  const listEl=document.getElementById('open-wagers-list');
-  const noEl=document.getElementById('no-open');
-  if(open.length===0){listEl.innerHTML='';noEl.style.display='block';}
-  else{noEl.style.display='none';listEl.innerHTML=open.map(w=>renderWagerCard(w)).join('');}
-  updateStats();
-  const recent=state.activity.slice(-5).reverse();
-  const actEl=document.getElementById('dash-activity');
-  actEl.innerHTML=recent.map(renderActivity).join('');
+  const mine = S.wagers.filter(w=>w.creator==='You'||w.joiner==='You');
+  const open = mine.filter(w=>w.status!=='settled');
+  const listEl = document.getElementById('dash-wagers');
+  const emEl = document.getElementById('dash-empty');
+  if(open.length){ emEl.style.display='none'; listEl.innerHTML=open.map(wagerRow).join(''); }
+  else{ listEl.innerHTML=''; emEl.style.display='block'; }
+  const recent = S.activity.slice(-5).reverse();
+  document.getElementById('dash-act').innerHTML = recent.length ? recent.map(actRow).join('') : '<div style="color:var(--dim);font-size:11px;text-align:center;padding:16px;font-family:IBM Plex Mono,monospace">No activity yet</div>';
 }
 
-function renderAllWagers(filter='all'){
-  let list=state.wagers;
-  if(filter!=='all')list=state.wagers.filter(w=>w.status===filter);
-  document.getElementById('all-wagers-list').innerHTML=list.length?list.map(w=>renderWagerCard(w,w.status==='settled'?'settled':'')).join(''):'<div style="color:var(--dim);text-align:center;padding:24px 0;font-size:13px">No wagers found</div>';
+function renderMyWagers(f){
+  let list = S.wagers.filter(w=>w.creator==='You'||w.joiner==='You');
+  if(f!=='all') list=list.filter(w=>w.status===f);
+  document.getElementById('my-wagers-list').innerHTML = list.length ? list.map(wagerRow).join('') : '<div style="color:var(--dim);font-size:11px;text-align:center;padding:24px;font-family:IBM Plex Mono,monospace">No wagers found</div>';
+}
+function filterMyWagers(f,btn){
+  document.querySelectorAll('#page-my-wagers .tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderMyWagers(f);
 }
 
-function filterWagers(f,btn){
-  document.querySelectorAll('#wager-filters .btn').forEach(b=>b.classList.remove('active-filter'));
-  btn.classList.add('active-filter');
-  renderAllWagers(f);
+function actRow(a){
+  const icons={win:'ti-trophy',loss:'ti-mood-sad',place:'ti-arrows-exchange',withdraw:'ti-arrow-bar-to-down',create:'ti-plus',join:'ti-check'};
+  const cls={win:'ai-win',loss:'ai-loss',place:'ai-place',withdraw:'ai-withdraw',create:'ai-create',join:'ai-place'};
+  const col={win:'var(--green)',loss:'var(--red)',withdraw:'#a78bfa',place:'var(--cyan)',create:'var(--amber)'};
+  const amtStr = a.amount?(a.type==='loss'?'-':(a.type==='withdraw'?'':'+'))+fmt(a.amount):'';
+  return `<div class="act-row">
+    <div class="act-icon ${cls[a.type]||'ai-create'}"><i class="ti ${icons[a.type]||'ti-circle'}"></i></div>
+    <div style="flex:1"><div class="act-desc">${a.desc}</div><div class="act-time">${a.time}</div></div>
+    ${amtStr?`<div class="act-amt" style="color:${col[a.type]||'var(--muted)'}">${amtStr}</div>`:''}
+  </div>`;
+}
+function renderFullAct(){
+  const el=document.getElementById('full-act');
+  const ne=document.getElementById('act-empty');
+  if(!S.activity.length){el.innerHTML='';ne.style.display='block';return;}
+  ne.style.display='none';
+  el.innerHTML=[...S.activity].reverse().map(actRow).join('');
+}
+function renderWdHistory(){
+  const el=document.getElementById('wd-history');
+  const ne=document.getElementById('wd-empty');
+  if(!S.withdrawals.length){el.innerHTML='';ne.style.display='block';return;}
+  ne.style.display='none';
+  el.innerHTML=[...S.withdrawals].reverse().map(actRow).join('');
 }
 
-function renderActivity(a){
-  const icons={win:'ti-trophy',loss:'ti-mood-sad',create:'ti-plus',join:'ti-arrows-exchange',withdraw:'ti-arrow-bar-to-down'};
-  const cls={win:'ai-win',loss:'ai-loss',create:'ai-create',join:'ai-create',withdraw:'ai-withdraw'};
-  const amtColor=a.type==='win'?'var(--green)':a.type==='loss'?'var(--red)':a.type==='withdraw'?'var(--accent)':'var(--muted)';
-  const amtStr=a.amount?(a.type==='loss'?'-':a.type==='create'||a.type==='join'?'':'+')+fmt(a.amount):'';
-  return `<div class="activity-item">
-    <div class="activity-icon ${cls[a.type]||'ai-create'}"><i class="ti ${icons[a.type]||'ti-circle'}"></i></div>
-    <div class="activity-detail"><div class="activity-desc">${a.desc}</div><div class="activity-time">${a.time}</div></div>
-    ${amtStr?`<div class="activity-amount" style="color:${amtColor}">${amtStr}</div>`:''}
+// SPORTS FEED
+async function loadSports(){
+  const feed = document.getElementById('sports-feed');
+  const loading = document.getElementById('sports-loading');
+  const errEl = document.getElementById('sports-error');
+  errEl.style.display='none';
+  loading.style.display='block';
+  feed.innerHTML='';
+  let loaded = 0;
+  const results = [];
+  for(const sp of SPORTS){
+    try{
+      const url = encodeURIComponent(`https://api.the-odds-api.com/v4/sports/${sp.key}/odds/?apiKey=${API_KEY}&regions=eu&markets=h2h&dateFormat=iso&oddsFormat=american`);
+      const r = await fetch(CORS+url);
+      if(!r.ok) continue;
+      const data = await r.json();
+      if(data&&data.length) results.push({...sp, games: data.slice(0,4)});
+    } catch(e){}
+    loaded++;
+  }
+  loading.style.display='none';
+  if(!results.length){
+    errEl.textContent='Could not load live odds. API may be rate-limited — showing demo data.';
+    errEl.style.display='block';
+    renderDemoSports();
+    return;
+  }
+  feed.innerHTML='';
+  results.forEach(sp=>{
+    const gCards = sp.games.map(g=>gameCard(g,sp)).join('');
+    feed.innerHTML+=`<div class="sport-section">
+      <div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.name}</span><span class="league-badge" style="margin-left:8px">${sp.games.length} games</span></div>
+      <div class="game-cards">${gCards}</div>
+    </div>`;
+  });
+}
+
+function gameCard(g, sp){
+  const home = g.home_team, away = g.away_team;
+  const dt = new Date(g.commence_time);
+  const timeStr = dt.toLocaleDateString('en-DK',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  let homeOdds='', awayOdds='', drawOdds='';
+  if(g.bookmakers&&g.bookmakers[0]){
+    const mkt = g.bookmakers[0].markets.find(m=>m.key==='h2h');
+    if(mkt){
+      mkt.outcomes.forEach(o=>{
+        if(o.name===home) homeOdds=o.price>0?'+'+o.price:o.price;
+        else if(o.name===away) awayOdds=o.price>0?'+'+o.price:o.price;
+        else drawOdds=o.price>0?'+'+o.price:o.price;
+      });
+    }
+  }
+  const drawBtn = drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','${sp.key}','${sp.name}','${home}','${away}',this)">Draw ${drawOdds}</div>`:'';
+  return `<div class="game-card" data-gid="${g.id}">
+    <div class="game-teams">
+      <div class="team-name">${home}</div>
+      <div class="vs-sep">${timeStr}</div>
+      <div class="team-name away">${away}</div>
+    </div>
+    <div class="game-meta">
+      <div class="league-badge">${sp.name}</div>
+      <div class="odds-row">
+        <div class="odds-btn" onclick="openBetModal('${g.id}','${home}','${sp.key}','${sp.name}','${home}','${away}',this)">${home.split(' ').pop()} ${homeOdds}</div>
+        ${drawBtn}
+        <div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${away}','${sp.key}','${sp.name}','${home}','${away}',this)">${away.split(' ').pop()} ${awayOdds}</div>
+      </div>
+    </div>
   </div>`;
 }
 
-function renderFullActivity(){
-  const el=document.getElementById('full-activity');
-  const noEl=document.getElementById('no-activity');
-  if(state.activity.length===0){el.innerHTML='';noEl.style.display='block';}
-  else{noEl.style.display='none';el.innerHTML=[...state.activity].reverse().map(renderActivity).join('');}
+function renderDemoSports(){
+  const demo=[
+    {sport:'Premier League',icon:'⚽',games:[
+      {id:'d1',home:'Manchester City',away:'Arsenal',time:'Today 20:00',homeOdds:'+110',awayOdds:'+240',drawOdds:'+230'},
+      {id:'d2',home:'Liverpool',away:'Chelsea',time:'Sat 15:00',homeOdds:'-140',awayOdds:'+380',drawOdds:'+280'},
+    ]},
+    {sport:'NBA',icon:'🏀',games:[
+      {id:'d3',home:'Boston Celtics',away:'Golden State Warriors',time:'Tonight 01:30',homeOdds:'-180',awayOdds:'+155'},
+      {id:'d4',home:'LA Lakers',away:'Denver Nuggets',time:'Tonight 04:00',homeOdds:'+130',awayOdds:'-155'},
+    ]},
+    {sport:'Danish Superliga',icon:'🇩🇰',games:[
+      {id:'d5',home:'FC Copenhagen',away:'Brøndby IF',time:'Sun 15:00',homeOdds:'-165',awayOdds:'+450',drawOdds:'+310'},
+    ]},
+  ];
+  const feed=document.getElementById('sports-feed');
+  feed.innerHTML=demo.map(sp=>`<div class="sport-section">
+    <div class="sport-header"><span class="sport-icon">${sp.icon}</span><span class="sport-name">${sp.sport}</span><span class="league-badge" style="margin-left:8px;color:var(--amber)">Demo</span></div>
+    <div class="game-cards">${sp.games.map(g=>`<div class="game-card">
+      <div class="game-teams">
+        <div class="team-name">${g.home}</div>
+        <div class="vs-sep">${g.time}</div>
+        <div class="team-name away">${g.away}</div>
+      </div>
+      <div class="game-meta">
+        <div class="league-badge">${sp.sport}</div>
+        <div class="odds-row">
+          <div class="odds-btn" onclick="openBetModal('${g.id}','${g.home}','demo','${sp.sport}','${g.home}','${g.away}',this)">${g.home.split(' ').pop()} ${g.homeOdds}</div>
+          ${g.drawOdds?`<div class="odds-btn" onclick="openBetModal('${g.id}','Draw','demo','${sp.sport}','${g.home}','${g.away}',this)">Draw ${g.drawOdds}</div>`:''}
+          <div class="odds-btn sel-away" onclick="openBetModal('${g.id}','${g.away}','demo','${sp.sport}','${g.home}','${g.away}',this)">${g.away.split(' ').pop()} ${g.awayOdds}</div>
+        </div>
+      </div>
+    </div>`).join('')}</div>
+  </div>`).join('');
 }
 
-function renderWithdrawHistory(){
-  const el=document.getElementById('withdraw-history');
-  const noEl=document.getElementById('no-withdrawals');
-  if(state.withdrawals.length===0){el.innerHTML='';noEl.style.display='block';}
-  else{noEl.style.display='none';el.innerHTML=[...state.withdrawals].reverse().map(renderActivity).join('');}
+// BET MODAL
+function openBetModal(gid,pick,sportKey,sportName,home,away,btn){
+  S.pendingBet={gid,pick,sportKey,sportName,home,away};
+  S.selectedSide=pick;
+  document.querySelectorAll('.odds-btn').forEach(b=>{b.classList.remove('sel','sel-away');});
+  btn.classList.add(pick===away?'sel-away':'sel');
+  document.getElementById('mb-sub').textContent=`${home} vs ${away} · ${sportName} · P2P Zero Edge`;
+  document.getElementById('mb-game').innerHTML=`<div class="vs-block" style="margin-bottom:16px">
+    <div class="vs-line"><div class="vs-name">${home}</div><div class="vs-mid">VS</div><div class="vs-name right">${away}</div></div>
+    <div class="vs-note">Your pick: <span style="color:var(--green);font-weight:600">${pick}</span></div>
+  </div>`;
+  document.getElementById('mb-sides').innerHTML=`
+    <div class="odds-btn ${pick===home?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='${home}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">${home}</div>
+    ${home!==away?`<div class="odds-btn ${pick==='Draw'?'sel':''}" style="cursor:pointer" onclick="S.selectedSide='Draw';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel')">Draw</div>`:''}
+    <div class="odds-btn ${pick===away?'sel-away':''}" style="cursor:pointer" onclick="S.selectedSide='${away}';document.querySelectorAll('#mb-sides .odds-btn').forEach(b=>b.classList.remove('sel','sel-away'));this.classList.add('sel-away')">${away}</div>
+  `;
+  document.getElementById('mb-amount').value='';
+  document.getElementById('mb-preview').style.display='none';
+  document.querySelectorAll('#mb-presets .preset').forEach(p=>p.classList.remove('on'));
+  document.getElementById('modal-bet').classList.add('open');
 }
-
-// Create wager
-function setPreset(v){
-  document.getElementById('create-amount').value=v;
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('selected'));
-  event.target.classList.add('selected');
-  updatePreview(v);
+function setMP(v,el){
+  document.getElementById('mb-amount').value=v;
+  document.querySelectorAll('#mb-presets .preset').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  showBetPreview(v);
 }
-document.getElementById('create-amount').addEventListener('input',function(){
-  const v=parseFloat(this.value)||0;
-  if(v>0)updatePreview(v); else document.getElementById('create-preview').style.display='none';
+function showBetPreview(v){
+  const p=document.getElementById('mb-preview');
+  p.style.display='block';
+  p.innerHTML=`<div class="vs-block">
+    <div class="vs-line">
+      <div class="vs-name">You (${S.selectedSide||S.pendingBet?.pick})</div>
+      <div class="vs-chip">${fmt(v)} each</div>
+      <div class="vs-name right" style="color:var(--dim)">P2P match</div>
+    </div>
+    <div class="vs-note">Pool: ${fmt(v*2)} · Zero edge · Winner takes all</div>
+  </div>`;
+}
+document.getElementById('mb-amount').addEventListener('input',function(){
+  const v=parseFloat(this.value);
+  if(v>0) showBetPreview(v); else document.getElementById('mb-preview').style.display='none';
 });
-function updatePreview(v){
-  document.getElementById('prev-amount').textContent=v.toFixed(2);
-  document.getElementById('prev-amount2').textContent=v.toFixed(2);
-  document.getElementById('prev-pool').textContent=(v*2).toFixed(2);
-  document.getElementById('create-preview').style.display='block';
-}
-function submitCreate(){
-  const title=document.getElementById('create-title').value.trim()||'Untitled Wager';
-  const amount=parseFloat(document.getElementById('create-amount').value);
-  if(!amount||amount<=0){showToast('Enter an amount','Stake must be greater than $0','error');return;}
-  if(amount>state.balance){showToast('Insufficient balance',`You need ${fmt(amount)} to create this wager`,'error');return;}
-  const w={id:state.nextId++,title,amount,creator:ME,joiner:null,status:'open',winner:null,createdAt:timeAgo()};
-  state.wagers.unshift(w);
-  state.balance-=amount;
-  state.activity.push({type:'create',desc:`Created wager: "${title}"`,amount,time:'just now'});
-  updateSidebar();
-  document.getElementById('create-title').value='';
-  document.getElementById('create-amount').value='';
-  document.getElementById('create-preview').style.display='none';
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('selected'));
-  showToast('Wager Created!',`${fmt(amount)} locked · Waiting for a match`,'success');
-  setTimeout(()=>{nav('dashboard');},1200);
-  // Simulate auto-join after delay
+function confirmBet(){
+  const b=S.pendingBet;
+  const amt=parseFloat(document.getElementById('mb-amount').value);
+  if(!amt||amt<=0){toast('Enter a stake','Amount must be greater than $0','err');return;}
+  if(amt>S.balance){toast('Insufficient balance',`Need ${fmt(amt)}`,'err');return;}
+  const pick=S.selectedSide||b.pick;
+  const title=`${b.home} vs ${b.away}`;
+  const w={
+    id:S.nid++,title,game:title,sport:b.sportKey,sportName:b.sportName,
+    creator:'You',joiner:null,status:'open',
+    pick,home:b.home,away:b.away,
+    amount:amt,myStake:amt,createdAt:now(),wonBy:null
+  };
+  S.wagers.unshift(w);
+  S.balance-=amt;
+  S.activity.push({type:'place',desc:`Placed wager: ${pick} — ${title}`,amount:amt,time:'just now'});
+  updSidebar();
+  closeModal('modal-bet');
+  toast('Wager Placed!',`${fmt(amt)} locked · Seeking P2P match`,'ok');
   setTimeout(()=>{
     if(w.status==='open'){
       w.joiner=randUser();
       w.status='active';
-      showToast('Match Found!',`${w.joiner} accepted your wager`,'info');
+      toast('Match Found!',`${w.joiner} took the opposite side`,'ok');
       renderDashboard();
     }
-  },3500);
+  },3000);
 }
 
-// Join
+// JOIN (custom wagers)
 function openJoin(id){
-  const w=state.wagers.find(x=>x.id===id);
+  const w=S.wagers.find(x=>x.id===id);
   if(!w)return;
-  if(w.amount>state.balance){showToast('Insufficient balance',`Need ${fmt(w.amount)} to join`,'error');return;}
-  state.pendingJoin=id;
-  document.getElementById('join-details').innerHTML=`
-    <div class="vs-row">
-      <div class="vs-player">${w.creator} (creator)</div>
-      <div class="vs-badge">${fmt(w.amount)}</div>
-      <div class="vs-center" style="padding:0 12px">VS</div>
-      <div class="vs-badge">${fmt(w.amount)}</div>
-      <div class="vs-player" style="text-align:right">You (joiner)</div>
-    </div>
-    <div style="font-size:12px;color:var(--dim);margin-top:10px;text-align:center">"${w.title}"</div>
-    <div style="font-size:12px;color:var(--dim);margin-top:4px;text-align:center">Total pool: ${fmt(w.amount*2)} · 50/50 P2P settlement</div>
-  `;
-  document.getElementById('modal-join').classList.add('open');
-}
-function confirmJoin(){
-  const w=state.wagers.find(x=>x.id===state.pendingJoin);
-  if(!w)return;
-  w.joiner=ME;
-  w.status='active';
-  state.balance-=w.amount;
-  state.activity.push({type:'join',desc:`Joined wager: "${w.title}"`,amount:w.amount,time:'just now'});
-  closeModal('modal-join');
-  updateSidebar();
-  showToast('Joined!',`${fmt(w.amount)} locked · Wager is now active`,'success');
-  renderDashboard();
+  if(w.amount>S.balance){toast('Insufficient balance',`Need ${fmt(w.amount)} to join`,'err');return;}
+  S.pendingBet={joinId:id};
+  document.getElementById('mb-sub').textContent=`Join as opposing side · P2P Zero Edge`;
+  document.getElementById('mb-game').innerHTML=`<div class="vs-block" style="margin-bottom:16px">
+    <div class="vs-line"><div class="vs-name">${w.creator}</div><div class="vs-mid">VS</div><div class="vs-name right" style="color:var(--green)">You</div></div>
+    <div class="vs-note">"${w.title}" · ${fmt(w.amount)} each</div>
+  </div>`;
+  document.getElementById('mb-sides').innerHTML='';
+  document.getElementById('mb-amount').value=w.amount;
+  document.getElementById('mb-preview').style.display='none';
+  document.getElementById('modal-bet').classList.add('open');
 }
 
-// Settle
+// SETTLE
 function openSettle(id){
-  const w=state.wagers.find(x=>x.id===id);
+  const w=S.wagers.find(x=>x.id===id);
   if(!w)return;
-  state.pendingSettle=id;
-  document.getElementById('settle-details').innerHTML=`
-    <div class="vs-row">
-      <div class="vs-player">${w.creator}</div>
-      <div class="vs-badge">${fmt(w.amount)}</div>
-      <div class="vs-center" style="padding:0 12px">VS</div>
-      <div class="vs-badge">${fmt(w.amount)}</div>
-      <div class="vs-player" style="text-align:right">${w.joiner}</div>
+  S.pendingSettle=id;
+  document.getElementById('ms-details').innerHTML=`<div class="vs-block">
+    <div class="vs-line">
+      <div class="vs-name">${w.creator}${w.pick?' ('+w.pick+')':''}</div>
+      <div class="vs-chip">${fmt(w.myStake||w.amount)} each</div>
+      <div class="vs-name right">${w.joiner}</div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6">Winner takes ${fmt(w.amount*2)}. The simulation uses a cryptographically seeded 50/50 random draw.</div>
-  `;
+    <div class="vs-note">Total pool: ${fmt((w.myStake||w.amount)*2)} · Winner receives full pool</div>
+  </div>`;
   document.getElementById('modal-settle').classList.add('open');
 }
 function confirmSettle(){
-  const w=state.wagers.find(x=>x.id===state.pendingSettle);
+  const w=S.wagers.find(x=>x.id===S.pendingSettle);
   if(!w)return;
   const creatorWins=Math.random()<0.5;
-  w.winner=creatorWins?'creator':'joiner';
   w.status='settled';
-  const myRole=w.creator===ME?'creator':w.joiner===ME?'joiner':null;
-  const iWon=myRole&&((myRole==='creator'&&creatorWins)||(myRole==='joiner'&&!creatorWins));
-  if(myRole){
-    if(iWon){
-      state.balance+=w.amount*2;
-      state.pnl+=w.amount;
-      state.wins++;
-      state.activity.push({type:'win',desc:`Won wager: "${w.title}"`,amount:w.amount*2,time:'just now'});
-      showToast('You Won! 🎉',`+${fmt(w.amount*2)} returned to wallet`,'success');
-    } else {
-      state.pnl-=w.amount;
-      state.losses++;
-      state.activity.push({type:'loss',desc:`Lost wager: "${w.title}"`,amount:w.amount,time:'just now'});
-      showToast('Better luck next time',`Lost ${fmt(w.amount)}`,'error');
-    }
+  w.wonBy=creatorWins?w.creator:w.joiner;
+  const amt=w.myStake||w.amount;
+  if(w.creator==='You'){
+    if(creatorWins){S.balance+=amt*2;S.pnl+=amt;S.wins++;S.activity.push({type:'win',desc:`Won: ${w.title}`,amount:amt*2,time:'just now'});toast('You Won! 🎉',`+${fmt(amt*2)} to wallet`,'ok');}
+    else{S.pnl-=amt;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:amt,time:'just now'});toast('Lost',`${fmt(amt)} gone`,'err');}
+  } else if(w.joiner==='You'){
+    if(!creatorWins){S.balance+=amt*2;S.pnl+=amt;S.wins++;S.activity.push({type:'win',desc:`Won: ${w.title}`,amount:amt*2,time:'just now'});toast('You Won! 🎉',`+${fmt(amt*2)} to wallet`,'ok');}
+    else{S.pnl-=amt;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${w.title}`,amount:amt,time:'just now'});toast('Lost',`${fmt(amt)} gone`,'err');}
   } else {
-    const winnerName=creatorWins?w.creator:w.joiner;
-    showToast('Wager Settled',`${winnerName} wins ${fmt(w.amount*2)}`,'info');
+    toast('Settled',`${w.wonBy} wins ${fmt(amt*2)}`,'info');
   }
   closeModal('modal-settle');
-  updateSidebar();
-  renderDashboard();
+  updSidebar(); updStats(); renderDashboard();
 }
 
-// Withdraw
-function selectWithdraw(type){
-  state.selectedWithdraw=type;
-  document.getElementById('wd-instant').classList.remove('selected-instant');
-  document.getElementById('wd-delay').classList.remove('selected-delay');
-  document.getElementById('wd-instant').classList.toggle('selected-instant',type==='instant');
-  document.getElementById('wd-delay').classList.toggle('selected-delay',type==='delay');
-  const b=state.balance;
-  const actionDiv=document.getElementById('withdraw-action');
-  const sumEl=document.getElementById('wd-summary');
-  actionDiv.style.display='block';
-  if(type==='instant'){
-    const payout=b*0.995;
-    const fee=b*0.005;
-    sumEl.innerHTML=`Instant withdrawal: receive <strong>${fmt(payout)}</strong> · Fee: <span style="color:var(--red)">${fmt(fee)}</span>`;
-    document.getElementById('wd-confirm-btn').textContent='Confirm Instant Withdrawal';
-  } else {
-    sumEl.innerHTML=`Delayed withdrawal: receive <strong>${fmt(b)}</strong> · No fee · ~2–5 business days`;
-    document.getElementById('wd-confirm-btn').textContent='Queue Delayed Withdrawal';
-  }
+// CUSTOM WAGER
+function setP(v,el){
+  document.getElementById('c-amount').value=v;
+  document.querySelectorAll('#page-create .preset').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('c-prev-amt').textContent=v.toFixed(2);
+  document.getElementById('c-prev-pool').textContent=(v*2).toFixed(2);
+  document.getElementById('c-preview').style.display='block';
 }
-function confirmWithdraw(){
-  if(!state.selectedWithdraw)return;
-  const b=state.balance;
-  if(b<=0){showToast('Nothing to withdraw','Balance is $0.00','error');return;}
-  const isInstant=state.selectedWithdraw==='instant';
-  const payout=isInstant?b*0.995:b;
-  const fee=isInstant?b*0.005:0;
-  state.balance=0;
-  state.withdrawals.push({
-    type:'withdraw',
-    desc:isInstant?`Instant withdrawal (0.5% fee applied)`:`Delayed withdrawal queued`,
-    amount:payout,
-    time:'just now'
-  });
-  state.activity.push({type:'withdraw',desc:isInstant?`Instant withdrawal · ${fmt(fee)} fee`:`Delayed withdrawal queued`,amount:payout,time:'just now'});
-  updateSidebar();
-  updateWalletPage();
-  renderWithdrawHistory();
-  document.getElementById('withdraw-action').style.display='none';
-  document.getElementById('wd-instant').classList.remove('selected-instant');
-  document.getElementById('wd-delay').classList.remove('selected-delay');
-  state.selectedWithdraw=null;
-  showToast(isInstant?'Withdrawal Processed!':'Withdrawal Queued',isInstant?`${fmt(payout)} sent · ${fmt(fee)} fee charged`:`${fmt(payout)} queued · No fee`,'success');
+document.getElementById('c-amount').addEventListener('input',function(){
+  const v=parseFloat(this.value)||0;
+  if(v>0){document.getElementById('c-prev-amt').textContent=v.toFixed(2);document.getElementById('c-prev-pool').textContent=(v*2).toFixed(2);document.getElementById('c-preview').style.display='block';}
+  else document.getElementById('c-preview').style.display='none';
+});
+function submitCustom(){
+  const title=document.getElementById('c-title').value.trim()||'Custom Wager';
+  const amt=parseFloat(document.getElementById('c-amount').value);
+  if(!amt||amt<=0){toast('Enter a stake','Amount must be greater than $0','err');return;}
+  if(amt>S.balance){toast('Insufficient balance',`Need ${fmt(amt)}`,'err');return;}
+  const w={id:S.nid++,title,sport:null,creator:'You',joiner:null,status:'open',amount:amt,myStake:amt,createdAt:now(),wonBy:null};
+  S.wagers.unshift(w);
+  S.balance-=amt;
+  S.activity.push({type:'create',desc:`Created custom wager: "${title}"`,amount:amt,time:'just now'});
+  updSidebar();
+  document.getElementById('c-title').value='';
+  document.getElementById('c-amount').value='';
+  document.getElementById('c-preview').style.display='none';
+  document.querySelectorAll('#page-create .preset').forEach(p=>p.classList.remove('on'));
+  toast('Wager Created!',`Share link copied · ${fmt(amt)} locked`,'ok');
+  setTimeout(()=>nav('dashboard'),1000);
+  setTimeout(()=>{
+    if(w.status==='open'){w.joiner=randUser();w.status='active';toast('Match Found!',`${w.joiner} accepted`,'ok');renderDashboard();}
+  },4000);
+}
+
+// WITHDRAW
+function doWithdraw(){
+  const b=S.balance;
+  if(b<=0){toast('Nothing to withdraw','Balance is $0.00','err');return;}
+  const fee=b*0.005, payout=b*0.995;
+  S.balance=0;
+  const entry={type:'withdraw',desc:`Instant withdrawal · ${fmt(fee)} fee deducted`,amount:payout,time:'just now'};
+  S.withdrawals.push(entry);
+  S.activity.push(entry);
+  updSidebar(); updWallet(); renderWdHistory();
+  toast('Withdrawal Processed',`${fmt(payout)} sent · ${fmt(fee)} fee`,'ok');
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+document.querySelectorAll('.overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
 
-function showToast(title,sub,type){
-  const t=document.getElementById('toast');
-  document.getElementById('toast-title').textContent=title;
-  document.getElementById('toast-sub').textContent=sub;
-  t.style.borderColor=type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--accent)';
-  t.classList.add('show');
-  clearTimeout(t._timeout);
-  t._timeout=setTimeout(()=>t.classList.remove('show'),3500);
+function toast(title,sub,type){
+  const el=document.getElementById('toast');
+  document.getElementById('t-title').textContent=title;
+  document.getElementById('t-sub').textContent=sub;
+  el.style.borderColor=type==='ok'?'var(--green)':type==='err'?'var(--red)':'var(--border2)';
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),3500);
 }
 
-// Seed demo wagers
-function seedDemo(){
+// SEED DEMO DATA
+function seed(){
   const demos=[
-    {title:'Bitcoin above $80k by end of month',amount:50,creator:'Alex M.',joiner:'Sam K.',status:'settled',winner:'creator'},
-    {title:'Man City wins Champions League',amount:25,creator:'Jordan R.',joiner:ME,status:'settled',winner:'joiner'},
-    {title:'Tesla stock hits $300 this week',amount:100,creator:ME,joiner:'Taylor B.',status:'active'},
-    {title:'Denmark beats France tonight',amount:40,creator:'Casey L.',joiner:null,status:'open'},
+    {title:'Liverpool vs Chelsea',game:'Liverpool vs Chelsea',sport:'soccer_epl',sportName:'Premier League',creator:'You',joiner:'Alex M.',status:'active',pick:'Liverpool',home:'Liverpool',away:'Chelsea',amount:50,myStake:50,createdAt:'3m ago'},
+    {title:'Boston Celtics vs Lakers',sport:'basketball_nba',sportName:'NBA',creator:'Sam K.',joiner:null,status:'open',amount:30,myStake:30,createdAt:'5m ago'},
+    {title:'FC Copenhagen vs Brøndby',sport:'soccer_denmark_superliga',sportName:'Danish Superliga',creator:'You',joiner:'Jordan R.',status:'settled',wonBy:'You',pick:'FC Copenhagen',home:'FC Copenhagen',away:'Brøndby IF',amount:25,myStake:25,createdAt:'10m ago'},
   ];
   demos.forEach(d=>{
-    const w={...d,id:state.nextId++,createdAt:'5m ago',winner:d.winner||null};
-    state.wagers.push(w);
-    if(d.status==='settled'&&(d.creator===ME||d.joiner===ME)){
-      const myRole=d.creator===ME?'creator':'joiner';
-      const won=(myRole==='creator'&&d.winner==='creator')||(myRole==='joiner'&&d.winner==='joiner');
-      if(won){state.balance+=d.amount;state.pnl+=d.amount;state.wins++;state.activity.push({type:'win',desc:`Won: "${d.title}"`,amount:d.amount*2,time:'8m ago'});}
-      else{state.balance-=d.amount;state.pnl-=d.amount;state.losses++;state.activity.push({type:'loss',desc:`Lost: "${d.title}"`,amount:d.amount,time:'10m ago'});}
+    const w={...d,id:S.nid++};
+    S.wagers.push(w);
+    if(d.status==='settled'&&d.creator==='You'){
+      const won=d.wonBy==='You';
+      if(won){S.balance+=d.amount;S.pnl+=d.amount;S.wins++;S.activity.push({type:'win',desc:`Won: ${d.title}`,amount:d.amount*2,time:'10m ago'});}
+      else{S.balance-=d.amount;S.pnl-=d.amount;S.losses++;S.activity.push({type:'loss',desc:`Lost: ${d.title}`,amount:d.amount,time:'10m ago'});}
     }
-    if(d.status==='active'&&d.creator===ME){state.balance-=d.amount;state.activity.push({type:'create',desc:`Created: "${d.title}"`,amount:d.amount,time:'3m ago'});}
+    if(d.status==='active'&&d.creator==='You'){S.balance-=d.amount;S.activity.push({type:'place',desc:`Placed: ${d.title}`,amount:d.amount,time:'3m ago'});}
   });
-  updateSidebar();
+  updSidebar();
 }
-
-seedDemo();
+seed();
 renderDashboard();
 </script>
