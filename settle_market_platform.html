@@ -1,0 +1,706 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0b;--surface:#121214;--card:#1a1a1e;--border:#2a2a30;--border2:#3a3a42;
+    --text:#f0f0f2;--muted:#888896;--dim:#55555f;
+    --green:#22c55e;--green-d:#16a34a;--green-bg:#0d2b1a;
+    --amber:#f59e0b;--amber-bg:#2a1e00;
+    --red:#ef4444;--red-bg:#2a0d0d;
+    --blue:#60a5fa;--blue-bg:#0d1a2a;
+    --accent:#a78bfa;--accent-bg:#1a1028;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+  h1,h2,h3,.mono{font-family:'DM Mono',monospace}
+  .syne{font-family:'Syne',sans-serif}
+
+  /* Layout */
+  #app{display:flex;min-height:100vh}
+  #sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;flex-shrink:0}
+  #main{flex:1;overflow-y:auto;padding:28px 32px}
+  .logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.5px}
+  .logo-dot{color:var(--accent)}
+  .logo-sub{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+  /* Nav */
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;border-left:2px solid transparent}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+  .nav-item.active{color:var(--text);background:rgba(167,139,250,.08);border-left-color:var(--accent)}
+  .nav-item i{font-size:16px;width:18px}
+  .nav-section{padding:12px 20px 6px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace}
+
+  /* Balance chip in sidebar */
+  .balance-chip{margin:auto 12px 20px;background:var(--accent-bg);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:12px 14px}
+  .balance-chip .label{font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+  .balance-chip .amount{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text);margin-top:3px}
+  .balance-chip .sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* Pages */
+  .page{display:none}.page.active{display:block}
+  .page-header{margin-bottom:28px}
+  .page-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.5px}
+  .page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .stat-card .s-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace}
+  .stat-card .s-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;margin-top:6px}
+  .stat-card .s-delta{font-size:11px;margin-top:4px}
+  .up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--muted)}
+
+  /* Section */
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s}
+  .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#9370f0}
+  .btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+  .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-green{background:var(--green-bg);border:1px solid var(--green-d);color:var(--green)}.btn-green:hover{background:#123d20}
+  .btn-danger{background:var(--red-bg);border:1px solid var(--red);color:var(--red)}
+
+  /* Wager cards */
+  .wager-list{display:flex;flex-direction:column;gap:10px}
+  .wager-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:16px;transition:border-color .15s}
+  .wager-card:hover{border-color:var(--border2)}
+  .wager-card.settled{opacity:.6}
+  .status-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .pip-open{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+  .pip-active{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .pip-settled{background:var(--dim)}
+  .wager-info{flex:1}
+  .wager-title{font-weight:500;font-size:13px;margin-bottom:3px}
+  .wager-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+  .wager-amount{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;text-align:right}
+  .wager-amount .each{font-size:10px;color:var(--dim)}
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+  .badge-open{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+  .badge-active{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+  .badge-settled{background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border)}
+  .badge-won{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+  .badge-lost{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+  .wager-actions{display:flex;gap:8px;align-items:center}
+
+  /* Modal overlay */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(2px)}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:28px;width:440px;max-width:95vw}
+  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:600;margin-bottom:6px}
+  .modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+  .form-group{margin-bottom:18px}
+  .form-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:'DM Mono',monospace;margin-bottom:7px;display:block}
+  .form-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+  .form-input:focus{border-color:var(--accent)}
+  .preset-amounts{display:flex;gap:8px;margin-top:8px}
+  .preset-btn{padding:6px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s}
+  .preset-btn:hover,.preset-btn.selected{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+
+  /* Wallet page */
+  .wallet-hero{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:24px;text-align:center}
+  .wallet-balance{font-family:'DM Mono',monospace;font-size:48px;font-weight:500;letter-spacing:-2px;margin-bottom:8px}
+  .withdraw-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+  .withdraw-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;position:relative}
+  .withdraw-card:hover{border-color:var(--border2)}
+  .withdraw-card.selected-instant{border-color:var(--green);background:var(--green-bg)}
+  .withdraw-card.selected-delay{border-color:var(--accent);background:var(--accent-bg)}
+  .wd-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px}
+  .wd-desc{font-size:12px;color:var(--muted);line-height:1.6}
+  .wd-fee{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;margin:10px 0 4px}
+  .fee-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+
+  /* Activity log */
+  .activity-list{display:flex;flex-direction:column;gap:8px}
+  .activity-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .ai-win{background:var(--green-bg);color:var(--green)}
+  .ai-loss{background:var(--red-bg);color:var(--red)}
+  .ai-create{background:var(--blue-bg);color:var(--blue)}
+  .ai-withdraw{background:var(--accent-bg);color:var(--accent)}
+  .activity-detail{flex:1}
+  .activity-desc{font-size:13px;font-weight:500}
+  .activity-time{font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;margin-top:2px}
+  .activity-amount{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+
+  /* Toast */
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;font-size:13px;z-index:200;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast-title{font-weight:500;margin-bottom:2px}
+  .toast-sub{color:var(--muted);font-size:12px}
+
+  /* Divider */
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+  /* vs box */
+  .vs-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-radius:8px;margin:8px 0}
+  .vs-player{flex:1;font-size:13px;font-weight:500}
+  .vs-badge{background:var(--accent-bg);color:var(--accent);border-radius:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:11px}
+  .vs-center{text-align:center;color:var(--dim);font-family:'DM Mono',monospace;font-size:11px}
+  .pending-slot{color:var(--dim);font-style:italic}
+
+  /* Pulse animation */
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .live-pulse{animation:pulse 1.5s infinite}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+
+<div id="app">
+  <nav id="sidebar">
+    <div class="logo">
+      <div class="logo-text">settle<span class="logo-dot">.</span>market</div>
+      <div class="logo-sub">P2P Wager Protocol</div>
+    </div>
+    <div class="nav-section">Platform</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="nav-item" onclick="nav('wagers')"><i class="ti ti-arrows-exchange"></i> Wagers</div>
+    <div class="nav-item" onclick="nav('create')"><i class="ti ti-plus"></i> Create Wager</div>
+    <div class="nav-section">Account</div>
+    <div class="nav-item" onclick="nav('wallet')"><i class="ti ti-wallet"></i> Wallet</div>
+    <div class="nav-item" onclick="nav('activity')"><i class="ti ti-list"></i> Activity</div>
+    <div style="flex:1"></div>
+    <div class="balance-chip">
+      <div class="label">Balance</div>
+      <div class="amount mono" id="sidebar-balance">$1,000.00</div>
+      <div class="sub">Demo funds</div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title syne">Market Overview</div>
+        <div class="page-sub">Your P2P wager activity and open positions</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="s-label">Balance</div>
+          <div class="s-val" id="stat-balance">$1,000.00</div>
+          <div class="s-delta neutral">Virtual demo</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Active Wagers</div>
+          <div class="s-val" id="stat-active">0</div>
+          <div class="s-delta neutral" id="stat-active-sub">$0 at stake</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Win Rate</div>
+          <div class="s-val" id="stat-winrate">—</div>
+          <div class="s-delta neutral" id="stat-winrate-sub">No settled wagers</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Net P&L</div>
+          <div class="s-val" id="stat-pnl">$0.00</div>
+          <div class="s-delta neutral" id="stat-pnl-sub">All time</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-title syne">Open Wagers</div>
+        <button class="btn btn-primary btn-sm" onclick="nav('create')"><i class="ti ti-plus"></i> Create</button>
+      </div>
+      <div class="wager-list" id="open-wagers-list"></div>
+      <div id="no-open" style="color:var(--dim);font-size:13px;padding:24px 0;text-align:center;display:none">
+        <i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>
+        No open wagers. <span style="color:var(--accent);cursor:pointer" onclick="nav('create')">Create one →</span>
+      </div>
+
+      <hr class="divider">
+
+      <div class="section-head">
+        <div class="section-title syne">Recent Activity</div>
+        <span style="font-size:12px;color:var(--accent);cursor:pointer" onclick="nav('activity')">View all →</span>
+      </div>
+      <div class="activity-list" id="dash-activity"></div>
+    </div>
+
+    <!-- WAGERS -->
+    <div class="page" id="page-wagers">
+      <div class="page-header">
+        <div class="page-title syne">All Wagers</div>
+        <div class="page-sub">Open, active, and settled positions</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px" id="wager-filters">
+        <button class="btn btn-sm btn-ghost active-filter" onclick="filterWagers('all',this)">All</button>
+        <button class="btn btn-sm btn-ghost" onclick="filterWagers('open',this)">Open</button>
+        <button class="btn btn-sm btn-ghost" onclick="filterWagers('active',this)">Active</button>
+        <button class="btn btn-sm btn-ghost" onclick="filterWagers('settled',this)">Settled</button>
+      </div>
+      <div class="wager-list" id="all-wagers-list"></div>
+    </div>
+
+    <!-- CREATE -->
+    <div class="page" id="page-create">
+      <div class="page-header">
+        <div class="page-title syne">Create Wager</div>
+        <div class="page-sub">Set your stake. Any matched user takes the opposite side.</div>
+      </div>
+      <div style="max-width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px">
+        <div class="form-group">
+          <label class="form-label">Title / Description</label>
+          <input class="form-input" id="create-title" placeholder="e.g. Denmark beats France tonight" maxlength="80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stake Amount</label>
+          <input class="form-input" id="create-amount" type="number" placeholder="0.00" min="1" max="9999">
+          <div class="preset-amounts" id="presets">
+            <div class="preset-btn" onclick="setPreset(10)">$10</div>
+            <div class="preset-btn" onclick="setPreset(25)">$25</div>
+            <div class="preset-btn" onclick="setPreset(50)">$50</div>
+            <div class="preset-btn" onclick="setPreset(100)">$100</div>
+            <div class="preset-btn" onclick="setPreset(250)">$250</div>
+          </div>
+        </div>
+        <div id="create-preview" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px">
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Wager Preview</div>
+          <div class="vs-row" style="margin:0">
+            <div class="vs-player">You (creator)</div>
+            <div class="vs-badge">$<span id="prev-amount">0</span></div>
+            <div class="vs-center" style="padding:0 10px">VS</div>
+            <div class="vs-badge" style="opacity:.5">$<span id="prev-amount2">0</span></div>
+            <div class="vs-player" style="text-align:right"><span class="pending-slot">Awaiting match</span></div>
+          </div>
+          <div style="font-size:11px;color:var(--dim);margin-top:10px">Total pool: $<span id="prev-pool">0</span> · 50/50 P2P · Zero edge</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="submitCreate()" style="flex:1"><i class="ti ti-plus"></i> Create Wager</button>
+          <button class="btn btn-ghost" onclick="nav('dashboard')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WALLET -->
+    <div class="page" id="page-wallet">
+      <div class="page-header">
+        <div class="page-title syne">Wallet</div>
+        <div class="page-sub">Manage your virtual balance</div>
+      </div>
+      <div class="wallet-hero">
+        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Available Balance</div>
+        <div class="wallet-balance" id="wallet-balance">$1,000.00</div>
+        <div style="font-size:12px;color:var(--dim)">Demo funds · No real money</div>
+        <hr class="divider" style="margin:20px 0">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Choose withdrawal method</div>
+        <div class="withdraw-options">
+          <div class="withdraw-card" id="wd-instant" onclick="selectWithdraw('instant')">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div class="wd-title">⚡ Instant</div>
+              <span class="fee-tag" style="background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)">0.5% fee</span>
+            </div>
+            <div class="wd-fee" id="instant-payout">$995.00</div>
+            <div class="wd-desc">You receive funds immediately. A 0.5% processing fee is applied.</div>
+          </div>
+          <div class="withdraw-card" id="wd-delay" onclick="selectWithdraw('delay')">
+            <div style="display:flex;justify-content:space-between;align-items:start">
+              <div class="wd-title">🕐 Delayed</div>
+              <span class="fee-tag" style="background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)">Free</span>
+            </div>
+            <div class="wd-fee" id="delayed-payout">$1,000.00</div>
+            <div class="wd-desc">Full amount. Queued for processing. No fee.</div>
+          </div>
+        </div>
+        <div id="withdraw-action" style="margin-top:16px;display:none">
+          <div id="wd-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
+          <button class="btn btn-primary" id="wd-confirm-btn" onclick="confirmWithdraw()">Confirm Withdrawal</button>
+        </div>
+      </div>
+      <div class="section-head">
+        <div class="section-title syne">Withdrawal History</div>
+      </div>
+      <div class="activity-list" id="withdraw-history"></div>
+      <div id="no-withdrawals" style="color:var(--dim);font-size:13px;padding:16px 0;text-align:center">No withdrawals yet</div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="page" id="page-activity">
+      <div class="page-header">
+        <div class="page-title syne">Activity Log</div>
+        <div class="page-sub">All wager and wallet events</div>
+      </div>
+      <div class="activity-list" id="full-activity"></div>
+      <div id="no-activity" style="color:var(--dim);font-size:13px;padding:24px 0;text-align:center">No activity yet</div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-join">
+  <div class="modal">
+    <div class="modal-title">Join Wager</div>
+    <div class="modal-sub">You'll take the opposing side. Funds locked until settlement.</div>
+    <div id="join-details"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-join')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmJoin()"><i class="ti ti-check"></i> Accept & Lock Funds</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-settle">
+  <div class="modal">
+    <div class="modal-title">Settle Wager</div>
+    <div class="modal-sub" id="settle-sub">Outcome determined by 50/50 random simulation.</div>
+    <div id="settle-details"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-settle')">Cancel</button>
+      <button class="btn btn-green" onclick="confirmSettle()"><i class="ti ti-dice"></i> Simulate Outcome</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-sub" id="toast-sub"></div>
+</div>
+
+<script>
+const USERS = ['You','Alex M.','Sam K.','Jordan R.','Taylor B.','Casey L.'];
+const ME = 'You';
+let state = {
+  balance: 1000,
+  wagers: [],
+  activity: [],
+  withdrawals: [],
+  pnl: 0,
+  wins: 0,
+  losses: 0,
+  nextId: 1,
+  pendingJoin: null,
+  pendingSettle: null,
+  selectedWithdraw: null
+};
+
+function fmt(n){return '$'+parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function fmtMini(n){return '$'+parseFloat(n).toFixed(2)}
+function timeAgo(){const m=['just now','1m ago','2m ago','5m ago','10m ago','15m ago'];return m[Math.floor(Math.random()*3)]}
+function randUser(){const u=USERS.filter(x=>x!==ME);return u[Math.floor(Math.random()*u.length)]}
+
+function updateSidebar(){
+  document.getElementById('sidebar-balance').textContent=fmt(state.balance);
+}
+function updateStats(){
+  document.getElementById('stat-balance').textContent=fmt(state.balance);
+  const active=state.wagers.filter(w=>w.status==='active'||w.status==='open');
+  const atStake=active.reduce((s,w)=>s+(w.creator===ME?w.amount:w.joiner===ME?w.amount:0),0);
+  document.getElementById('stat-active').textContent=active.length;
+  document.getElementById('stat-active-sub').textContent=fmt(atStake)+' at stake';
+  const total=state.wins+state.losses;
+  document.getElementById('stat-winrate').textContent=total?Math.round(state.wins/total*100)+'%':'—';
+  document.getElementById('stat-winrate-sub').textContent=total?`${state.wins}W / ${state.losses}L`:'No settled wagers';
+  const pnl=state.pnl;
+  const el=document.getElementById('stat-pnl');
+  el.textContent=fmt(pnl);
+  el.style.color=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text)';
+  document.getElementById('stat-pnl-sub').textContent='All time';
+}
+function updateWalletPage(){
+  const b=state.balance;
+  document.getElementById('wallet-balance').textContent=fmt(b);
+  document.getElementById('instant-payout').textContent=fmtMini(b*0.995);
+  document.getElementById('delayed-payout').textContent=fmtMini(b);
+}
+
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navItems=document.querySelectorAll('.nav-item');
+  navItems.forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+page+"'"))n.classList.add('active')});
+  if(page==='dashboard')renderDashboard();
+  if(page==='wagers')renderAllWagers();
+  if(page==='wallet'){updateWalletPage();renderWithdrawHistory();}
+  if(page==='activity')renderFullActivity();
+}
+
+function renderWagerCard(w,context){
+  const myRole=w.creator===ME?'creator':w.joiner===ME?'joiner':null;
+  const pip=w.status==='open'?'pip-open':w.status==='active'?'pip-active':'pip-settled';
+  const badge=w.status==='open'?'<span class="badge badge-open">Open</span>':w.status==='active'?'<span class="badge badge-active live-pulse">Active</span>':'<span class="badge badge-settled">Settled</span>';
+  let result='';
+  if(w.status==='settled'&&myRole){
+    const won=(myRole==='creator'&&w.winner==='creator')||(myRole==='joiner'&&w.winner==='joiner');
+    result=won?'<span class="badge badge-won">Won +'+fmtMini(w.amount)+'</span>':'<span class="badge badge-lost">Lost</span>';
+  }
+  let actions='';
+  if(context!=='settled'){
+    if(w.status==='open'&&!myRole)actions+=`<button class="btn btn-sm btn-green" onclick="openJoin(${w.id})"><i class="ti ti-check"></i> Join</button>`;
+    if(w.status==='active'&&myRole)actions+=`<button class="btn btn-sm btn-ghost" onclick="openSettle(${w.id})"><i class="ti ti-dice"></i> Settle</button>`;
+  }
+  const opponent=w.creator===ME?w.joiner:w.creator;
+  const opText=w.status==='open'&&!w.joiner?'<span class="pending-slot">Waiting for match…</span>':opponent;
+  return `<div class="wager-card${w.status==='settled'?' settled':''}">
+    <div class="status-pip ${pip}"></div>
+    <div class="wager-info">
+      <div class="wager-title">${w.title}</div>
+      <div class="wager-meta">${badge} &nbsp;${w.creator} vs ${opText} &nbsp;·&nbsp; ${w.createdAt}</div>
+    </div>
+    <div class="wager-amount">${fmt(w.amount)}<div class="each">each side</div></div>
+    <div class="wager-actions">${result} ${actions}</div>
+  </div>`;
+}
+
+function renderDashboard(){
+  const open=state.wagers.filter(w=>w.status==='open'||w.status==='active');
+  const listEl=document.getElementById('open-wagers-list');
+  const noEl=document.getElementById('no-open');
+  if(open.length===0){listEl.innerHTML='';noEl.style.display='block';}
+  else{noEl.style.display='none';listEl.innerHTML=open.map(w=>renderWagerCard(w)).join('');}
+  updateStats();
+  const recent=state.activity.slice(-5).reverse();
+  const actEl=document.getElementById('dash-activity');
+  actEl.innerHTML=recent.map(renderActivity).join('');
+}
+
+function renderAllWagers(filter='all'){
+  let list=state.wagers;
+  if(filter!=='all')list=state.wagers.filter(w=>w.status===filter);
+  document.getElementById('all-wagers-list').innerHTML=list.length?list.map(w=>renderWagerCard(w,w.status==='settled'?'settled':'')).join(''):'<div style="color:var(--dim);text-align:center;padding:24px 0;font-size:13px">No wagers found</div>';
+}
+
+function filterWagers(f,btn){
+  document.querySelectorAll('#wager-filters .btn').forEach(b=>b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  renderAllWagers(f);
+}
+
+function renderActivity(a){
+  const icons={win:'ti-trophy',loss:'ti-mood-sad',create:'ti-plus',join:'ti-arrows-exchange',withdraw:'ti-arrow-bar-to-down'};
+  const cls={win:'ai-win',loss:'ai-loss',create:'ai-create',join:'ai-create',withdraw:'ai-withdraw'};
+  const amtColor=a.type==='win'?'var(--green)':a.type==='loss'?'var(--red)':a.type==='withdraw'?'var(--accent)':'var(--muted)';
+  const amtStr=a.amount?(a.type==='loss'?'-':a.type==='create'||a.type==='join'?'':'+')+fmt(a.amount):'';
+  return `<div class="activity-item">
+    <div class="activity-icon ${cls[a.type]||'ai-create'}"><i class="ti ${icons[a.type]||'ti-circle'}"></i></div>
+    <div class="activity-detail"><div class="activity-desc">${a.desc}</div><div class="activity-time">${a.time}</div></div>
+    ${amtStr?`<div class="activity-amount" style="color:${amtColor}">${amtStr}</div>`:''}
+  </div>`;
+}
+
+function renderFullActivity(){
+  const el=document.getElementById('full-activity');
+  const noEl=document.getElementById('no-activity');
+  if(state.activity.length===0){el.innerHTML='';noEl.style.display='block';}
+  else{noEl.style.display='none';el.innerHTML=[...state.activity].reverse().map(renderActivity).join('');}
+}
+
+function renderWithdrawHistory(){
+  const el=document.getElementById('withdraw-history');
+  const noEl=document.getElementById('no-withdrawals');
+  if(state.withdrawals.length===0){el.innerHTML='';noEl.style.display='block';}
+  else{noEl.style.display='none';el.innerHTML=[...state.withdrawals].reverse().map(renderActivity).join('');}
+}
+
+// Create wager
+function setPreset(v){
+  document.getElementById('create-amount').value=v;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  updatePreview(v);
+}
+document.getElementById('create-amount').addEventListener('input',function(){
+  const v=parseFloat(this.value)||0;
+  if(v>0)updatePreview(v); else document.getElementById('create-preview').style.display='none';
+});
+function updatePreview(v){
+  document.getElementById('prev-amount').textContent=v.toFixed(2);
+  document.getElementById('prev-amount2').textContent=v.toFixed(2);
+  document.getElementById('prev-pool').textContent=(v*2).toFixed(2);
+  document.getElementById('create-preview').style.display='block';
+}
+function submitCreate(){
+  const title=document.getElementById('create-title').value.trim()||'Untitled Wager';
+  const amount=parseFloat(document.getElementById('create-amount').value);
+  if(!amount||amount<=0){showToast('Enter an amount','Stake must be greater than $0','error');return;}
+  if(amount>state.balance){showToast('Insufficient balance',`You need ${fmt(amount)} to create this wager`,'error');return;}
+  const w={id:state.nextId++,title,amount,creator:ME,joiner:null,status:'open',winner:null,createdAt:timeAgo()};
+  state.wagers.unshift(w);
+  state.balance-=amount;
+  state.activity.push({type:'create',desc:`Created wager: "${title}"`,amount,time:'just now'});
+  updateSidebar();
+  document.getElementById('create-title').value='';
+  document.getElementById('create-amount').value='';
+  document.getElementById('create-preview').style.display='none';
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('selected'));
+  showToast('Wager Created!',`${fmt(amount)} locked · Waiting for a match`,'success');
+  setTimeout(()=>{nav('dashboard');},1200);
+  // Simulate auto-join after delay
+  setTimeout(()=>{
+    if(w.status==='open'){
+      w.joiner=randUser();
+      w.status='active';
+      showToast('Match Found!',`${w.joiner} accepted your wager`,'info');
+      renderDashboard();
+    }
+  },3500);
+}
+
+// Join
+function openJoin(id){
+  const w=state.wagers.find(x=>x.id===id);
+  if(!w)return;
+  if(w.amount>state.balance){showToast('Insufficient balance',`Need ${fmt(w.amount)} to join`,'error');return;}
+  state.pendingJoin=id;
+  document.getElementById('join-details').innerHTML=`
+    <div class="vs-row">
+      <div class="vs-player">${w.creator} (creator)</div>
+      <div class="vs-badge">${fmt(w.amount)}</div>
+      <div class="vs-center" style="padding:0 12px">VS</div>
+      <div class="vs-badge">${fmt(w.amount)}</div>
+      <div class="vs-player" style="text-align:right">You (joiner)</div>
+    </div>
+    <div style="font-size:12px;color:var(--dim);margin-top:10px;text-align:center">"${w.title}"</div>
+    <div style="font-size:12px;color:var(--dim);margin-top:4px;text-align:center">Total pool: ${fmt(w.amount*2)} · 50/50 P2P settlement</div>
+  `;
+  document.getElementById('modal-join').classList.add('open');
+}
+function confirmJoin(){
+  const w=state.wagers.find(x=>x.id===state.pendingJoin);
+  if(!w)return;
+  w.joiner=ME;
+  w.status='active';
+  state.balance-=w.amount;
+  state.activity.push({type:'join',desc:`Joined wager: "${w.title}"`,amount:w.amount,time:'just now'});
+  closeModal('modal-join');
+  updateSidebar();
+  showToast('Joined!',`${fmt(w.amount)} locked · Wager is now active`,'success');
+  renderDashboard();
+}
+
+// Settle
+function openSettle(id){
+  const w=state.wagers.find(x=>x.id===id);
+  if(!w)return;
+  state.pendingSettle=id;
+  document.getElementById('settle-details').innerHTML=`
+    <div class="vs-row">
+      <div class="vs-player">${w.creator}</div>
+      <div class="vs-badge">${fmt(w.amount)}</div>
+      <div class="vs-center" style="padding:0 12px">VS</div>
+      <div class="vs-badge">${fmt(w.amount)}</div>
+      <div class="vs-player" style="text-align:right">${w.joiner}</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6">Winner takes ${fmt(w.amount*2)}. The simulation uses a cryptographically seeded 50/50 random draw.</div>
+  `;
+  document.getElementById('modal-settle').classList.add('open');
+}
+function confirmSettle(){
+  const w=state.wagers.find(x=>x.id===state.pendingSettle);
+  if(!w)return;
+  const creatorWins=Math.random()<0.5;
+  w.winner=creatorWins?'creator':'joiner';
+  w.status='settled';
+  const myRole=w.creator===ME?'creator':w.joiner===ME?'joiner':null;
+  const iWon=myRole&&((myRole==='creator'&&creatorWins)||(myRole==='joiner'&&!creatorWins));
+  if(myRole){
+    if(iWon){
+      state.balance+=w.amount*2;
+      state.pnl+=w.amount;
+      state.wins++;
+      state.activity.push({type:'win',desc:`Won wager: "${w.title}"`,amount:w.amount*2,time:'just now'});
+      showToast('You Won! 🎉',`+${fmt(w.amount*2)} returned to wallet`,'success');
+    } else {
+      state.pnl-=w.amount;
+      state.losses++;
+      state.activity.push({type:'loss',desc:`Lost wager: "${w.title}"`,amount:w.amount,time:'just now'});
+      showToast('Better luck next time',`Lost ${fmt(w.amount)}`,'error');
+    }
+  } else {
+    const winnerName=creatorWins?w.creator:w.joiner;
+    showToast('Wager Settled',`${winnerName} wins ${fmt(w.amount*2)}`,'info');
+  }
+  closeModal('modal-settle');
+  updateSidebar();
+  renderDashboard();
+}
+
+// Withdraw
+function selectWithdraw(type){
+  state.selectedWithdraw=type;
+  document.getElementById('wd-instant').classList.remove('selected-instant');
+  document.getElementById('wd-delay').classList.remove('selected-delay');
+  document.getElementById('wd-instant').classList.toggle('selected-instant',type==='instant');
+  document.getElementById('wd-delay').classList.toggle('selected-delay',type==='delay');
+  const b=state.balance;
+  const actionDiv=document.getElementById('withdraw-action');
+  const sumEl=document.getElementById('wd-summary');
+  actionDiv.style.display='block';
+  if(type==='instant'){
+    const payout=b*0.995;
+    const fee=b*0.005;
+    sumEl.innerHTML=`Instant withdrawal: receive <strong>${fmt(payout)}</strong> · Fee: <span style="color:var(--red)">${fmt(fee)}</span>`;
+    document.getElementById('wd-confirm-btn').textContent='Confirm Instant Withdrawal';
+  } else {
+    sumEl.innerHTML=`Delayed withdrawal: receive <strong>${fmt(b)}</strong> · No fee · ~2–5 business days`;
+    document.getElementById('wd-confirm-btn').textContent='Queue Delayed Withdrawal';
+  }
+}
+function confirmWithdraw(){
+  if(!state.selectedWithdraw)return;
+  const b=state.balance;
+  if(b<=0){showToast('Nothing to withdraw','Balance is $0.00','error');return;}
+  const isInstant=state.selectedWithdraw==='instant';
+  const payout=isInstant?b*0.995:b;
+  const fee=isInstant?b*0.005:0;
+  state.balance=0;
+  state.withdrawals.push({
+    type:'withdraw',
+    desc:isInstant?`Instant withdrawal (0.5% fee applied)`:`Delayed withdrawal queued`,
+    amount:payout,
+    time:'just now'
+  });
+  state.activity.push({type:'withdraw',desc:isInstant?`Instant withdrawal · ${fmt(fee)} fee`:`Delayed withdrawal queued`,amount:payout,time:'just now'});
+  updateSidebar();
+  updateWalletPage();
+  renderWithdrawHistory();
+  document.getElementById('withdraw-action').style.display='none';
+  document.getElementById('wd-instant').classList.remove('selected-instant');
+  document.getElementById('wd-delay').classList.remove('selected-delay');
+  state.selectedWithdraw=null;
+  showToast(isInstant?'Withdrawal Processed!':'Withdrawal Queued',isInstant?`${fmt(payout)} sent · ${fmt(fee)} fee charged`:`${fmt(payout)} queued · No fee`,'success');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+function showToast(title,sub,type){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-title').textContent=title;
+  document.getElementById('toast-sub').textContent=sub;
+  t.style.borderColor=type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--accent)';
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// Seed demo wagers
+function seedDemo(){
+  const demos=[
+    {title:'Bitcoin above $80k by end of month',amount:50,creator:'Alex M.',joiner:'Sam K.',status:'settled',winner:'creator'},
+    {title:'Man City wins Champions League',amount:25,creator:'Jordan R.',joiner:ME,status:'settled',winner:'joiner'},
+    {title:'Tesla stock hits $300 this week',amount:100,creator:ME,joiner:'Taylor B.',status:'active'},
+    {title:'Denmark beats France tonight',amount:40,creator:'Casey L.',joiner:null,status:'open'},
+  ];
+  demos.forEach(d=>{
+    const w={...d,id:state.nextId++,createdAt:'5m ago',winner:d.winner||null};
+    state.wagers.push(w);
+    if(d.status==='settled'&&(d.creator===ME||d.joiner===ME)){
+      const myRole=d.creator===ME?'creator':'joiner';
+      const won=(myRole==='creator'&&d.winner==='creator')||(myRole==='joiner'&&d.winner==='joiner');
+      if(won){state.balance+=d.amount;state.pnl+=d.amount;state.wins++;state.activity.push({type:'win',desc:`Won: "${d.title}"`,amount:d.amount*2,time:'8m ago'});}
+      else{state.balance-=d.amount;state.pnl-=d.amount;state.losses++;state.activity.push({type:'loss',desc:`Lost: "${d.title}"`,amount:d.amount,time:'10m ago'});}
+    }
+    if(d.status==='active'&&d.creator===ME){state.balance-=d.amount;state.activity.push({type:'create',desc:`Created: "${d.title}"`,amount:d.amount,time:'3m ago'});}
+  });
+  updateSidebar();
+}
+
+seedDemo();
+renderDashboard();
+</script>
